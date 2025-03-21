@@ -1,0 +1,44 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'features/authentication/cubit/login/login_cubit.dart';
+import 'features/authentication/cubit/register/register_cubit.dart';
+import 'features/authentication/repository/authentication_repository.dart';
+import 'features/chat/cubit/friends/firends_cubit.dart';
+import 'features/chat/repository/friends/friends_repository.dart';
+import 'routes/app_router.dart';
+import 'services/api/api_provider.dart';
+import 'services/api/authentication/auth_service.dart';
+import 'services/api/friends/friends_service.dart';
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider(create: (context) => ApiProvider()),
+        RepositoryProvider(create: (context) => AuthService(context.read<ApiProvider>())),
+        RepositoryProvider(create: (context) => AuthenticationRepository(context.read<AuthService>())),
+        RepositoryProvider(create: (context) => FriendsService(apiProvider: context.read<ApiProvider>())),
+        RepositoryProvider(create: (context) => FriendsRepository(friendsService: context.read<FriendsService>())),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => LoginCubit(authRepository: context.read<AuthenticationRepository>())),
+          BlocProvider(create: (context) => RegisterCubit(authRepository: context.read<AuthenticationRepository>())),
+          BlocProvider(create: (context) => FriendsCubit(friendsRepository: context.read<FriendsRepository>())),
+        ],
+        child: MaterialApp.router(
+          title: 'Authentication Demo',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+            useMaterial3: true,
+          ),
+          routerConfig: goRouter,
+          debugShowCheckedModeBanner: false,
+        ),
+      ),
+    );
+  }
+}
