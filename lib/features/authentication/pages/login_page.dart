@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../routes/app_router.dart';
-import '../../../widgets/toast.dart';
+import '../../../common/widgets/toast.dart';
 import '../cubit/login/login_cubit.dart';
 import '../cubit/login/login_state.dart';
-
+import '../../../../common/bloc_status.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -44,13 +44,13 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: BlocConsumer<LoginCubit, LoginState>(
         listener: (context, state) {
-          if (state.status == LoginStatus.error) {
+          if (state.status == BlocStatus.failure) {
             Toast.show(
               context,
               state.errorMessage ?? 'An error occurred',
               type: ToastType.error,
             );
-          } else if (state.status == LoginStatus.success) {
+          } else if (state.status == BlocStatus.success) {
             Toast.show(
               context,
               'Login successful',
@@ -117,11 +117,11 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed:
-                          state.status == LoginStatus.loading ? null : _handleLogin,
+                          state.status == BlocStatus.loading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: state.status == LoginStatus.loading
+                      child: state.status == BlocStatus.loading
                           ? const CircularProgressIndicator()
                           : const Text(
                               'Login',

@@ -9,6 +9,7 @@ import 'routes/app_router.dart';
 import 'services/api/api_provider.dart';
 import 'services/api/authentication/auth_service.dart';
 import 'services/api/friends/friends_service.dart';
+import 'services/websocket/chatuser/chat_socket_provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -18,16 +19,35 @@ class MyApp extends StatelessWidget {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(create: (context) => ApiProvider()),
-        RepositoryProvider(create: (context) => AuthService(context.read<ApiProvider>())),
-        RepositoryProvider(create: (context) => AuthenticationRepository(context.read<AuthService>())),
-        RepositoryProvider(create: (context) => FriendsService(apiProvider: context.read<ApiProvider>())),
-        RepositoryProvider(create: (context) => FriendsRepository(friendsService: context.read<FriendsService>())),
+        RepositoryProvider(
+          create: (context) => AuthService(context.read<ApiProvider>()),
+          lazy: false,
+        ),
+        RepositoryProvider(
+          create: (context) => AuthenticationRepository(context.read<AuthService>()),
+          lazy: false,
+        ),
+        RepositoryProvider(
+          create: (context) => FriendsService(apiProvider: context.read<ApiProvider>()),
+        ),
+        RepositoryProvider(
+          create: (context) => FriendsRepository(friendsService: context.read<FriendsService>()),
+        ),
+        RepositoryProvider(
+          create: (context) => ChatSocketProvider(context.read<AuthService>()),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (context) => LoginCubit(authRepository: context.read<AuthenticationRepository>())),
-          BlocProvider(create: (context) => RegisterCubit(authRepository: context.read<AuthenticationRepository>())),
-          BlocProvider(create: (context) => FriendsCubit(friendsRepository: context.read<FriendsRepository>())),
+          BlocProvider(
+            create: (context) => LoginCubit(authRepository: context.read<AuthenticationRepository>()),
+          ),
+          BlocProvider(
+            create: (context) => RegisterCubit(authRepository: context.read<AuthenticationRepository>()),
+          ),
+          BlocProvider(
+            create: (context) => FriendsCubit(friendsRepository: context.read<FriendsRepository>()),
+          ),
         ],
         child: MaterialApp.router(
           title: 'Authentication Demo',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../routes/app_router.dart';
-import '../../../widgets/toast.dart';
+import '../../../common/widgets/toast.dart';
 import '../cubit/register/register_cubit.dart';
 import '../cubit/register/register_state.dart';
 
