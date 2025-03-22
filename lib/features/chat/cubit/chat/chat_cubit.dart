@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../services/websocket/chatuser/chat_message.dart';
 import '../../../../common/bloc_status.dart';
@@ -6,7 +7,7 @@ import '../../repository/chat_repository.dart';
 import 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
-  final ChatRepository _repository;
+  final ChatRepository _chatRepository;
   List<ChatMessage> _messages = [];
   bool _isTyping = false;
   Timer? _typingTimer;
@@ -16,7 +17,7 @@ class ChatCubit extends Cubit<ChatState> {
 
   ChatCubit({
     required ChatRepository repository,
-  }) : _repository = repository,
+  }) : _chatRepository = repository,
        super(ChatInitial()) {
     initialize();
   }
@@ -27,7 +28,7 @@ class ChatCubit extends Cubit<ChatState> {
     try {
       emit(ChatLoading());
       
-      final messages = await _repository.getInitialMessages();
+      final messages = await _chatRepository.getInitialMessages();
       
       if (_isClosed) return;
       emit(ChatConnected(
@@ -35,7 +36,7 @@ class ChatCubit extends Cubit<ChatState> {
         isTyping: false,
       ));
 
-      _messageSubscription = _repository.messageStream.listen((message) {
+      _messageSubscription = _chatRepository.messageStream.listen((message) {
         if (_isClosed || state.status == BlocStatus.failure) return;
         
         if (state is ChatConnected) {
@@ -48,7 +49,7 @@ class ChatCubit extends Cubit<ChatState> {
         }
       });
 
-      _statusSubscription = _repository.statusStream.listen((data) {
+      _statusSubscription = _chatRepository.statusStream.listen((data) {
         if (_isClosed || state.status == BlocStatus.failure) return;
         
         if (state is ChatConnected) {
@@ -57,7 +58,7 @@ class ChatCubit extends Cubit<ChatState> {
           final senderId = data['senderId'] as String;
           
           // Only show typing indicator if the sender is not the current user
-          if (senderId != _repository.currentUserId) {
+          if (senderId != _chatRepository.currentUserId) {
             final isTyping = status == 'typing';
             
             emit(ChatConnected(
@@ -76,11 +77,11 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  void sendMessage(String content) async {
+  Future<void> sendMessage(String content, {File? imageFile}) async {
     if (_isClosed || state.status == BlocStatus.failure) return;
     
     try {
-      await _repository.sendMessage(content);
+      await _chatRepository.sendMessage(content, imageFile: imageFile);
     } catch (e) {
       print('Error sending message: $e');
       if (!_isClosed) {
@@ -95,21 +96,21 @@ class ChatCubit extends Cubit<ChatState> {
     _typingTimer?.cancel();
 
     if (isTyping) {
-      _repository.sendTypingStatus(true);
+      _chatRepository.sendTypingStatus(true);
       _typingTimer = Timer(const Duration(seconds: 2), () {
         if (!_isClosed) {
-          _repository.sendTypingStatus(false);
+          _chatRepository.sendTypingStatus(false);
         }
       });
     } else {
-      _repository.sendTypingStatus(false);
+      _chatRepository.sendTypingStatus(false);
     }
   }
 
   @override
   Future<void> close() {
     _isClosed = true;
-    _repository.dispose();
+    _chatRepository.dispose();
     _typingTimer?.cancel();
     _messageSubscription?.cancel();
     _statusSubscription?.cancel();

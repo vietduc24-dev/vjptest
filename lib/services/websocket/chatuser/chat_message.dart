@@ -25,14 +25,14 @@ class ChatMessage {
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
-      id: json['id'] as String,
-      senderId: json['senderId'] as String,
-      receiverId: json['receiverId'] as String,
-      content: json['content'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      id: json['id'].toString(),
+      senderId: json['sender'],
+      receiverId: json['receiver'],
+      content: json['message'],
+      timestamp: DateTime.parse(json['timestamp']),
       isRead: json['isRead'] as bool? ?? false,
-      attachmentUrl: json['attachmentUrl'] as String?,
-      attachmentType: json['attachmentType'] as String?,
+      attachmentUrl: json['attachmentUrl'],
+      attachmentType: json['attachmentType'],
       senderName: json['senderName'] as String?,
       senderAvatar: json['senderAvatar'] as String?,
     );
@@ -41,13 +41,13 @@ class ChatMessage {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'senderId': senderId,
-      'receiverId': receiverId,
-      'content': content,
+      'sender': senderId,
+      'receiver': receiverId,
+      'message': content,
       'timestamp': timestamp.toIso8601String(),
       'isRead': isRead,
-      if (attachmentUrl != null) 'attachmentUrl': attachmentUrl,
-      if (attachmentType != null) 'attachmentType': attachmentType,
+      'attachmentUrl': attachmentUrl,
+      'attachmentType': attachmentType,
       if (senderName != null) 'senderName': senderName,
       if (senderAvatar != null) 'senderAvatar': senderAvatar,
     };
@@ -77,5 +77,10 @@ class ChatMessage {
       senderName: senderName ?? this.senderName,
       senderAvatar: senderAvatar ?? this.senderAvatar,
     );
+  }
+
+  @override
+  String toString() {
+    return 'ChatMessage{id: $id, senderId: $senderId, receiverId: $receiverId, content: $content, timestamp: $timestamp, attachmentUrl: $attachmentUrl, attachmentType: $attachmentType}';
   }
 } 

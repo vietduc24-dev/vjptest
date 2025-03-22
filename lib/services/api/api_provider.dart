@@ -21,13 +21,10 @@ class ApiProvider {
       ),
     );
 
-    debugPrint('API Provider initialized with baseUrl: ${BaseEndpoint.baseUrl}');
-
-    // Add retry interceptor
     _dio.interceptors.add(
       RetryInterceptor(
         dio: _dio,
-        logPrint: debugPrint,
+        logPrint: kDebugMode ? debugPrint : null,
         retries: 3,
         retryDelays: const [
           Duration(seconds: 1),
@@ -50,14 +47,10 @@ class ApiProvider {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Add auth token if available
     final token = await storage.read(key: 'auth_token');
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
-    debugPrint('API Request: ${options.method} ${options.path}');
-    debugPrint('Headers: ${options.headers}');
-    debugPrint('Data: ${options.data}');
     return handler.next(options);
   }
 
@@ -65,8 +58,6 @@ class ApiProvider {
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
-    debugPrint('API Response: ${response.statusCode}');
-    debugPrint('Response data: ${response.data}');
     return handler.next(response);
   }
 
@@ -74,10 +65,12 @@ class ApiProvider {
     DioException error,
     ErrorInterceptorHandler handler,
   ) async {
-    debugPrint('API Error: ${error.type}');
-    debugPrint('Error message: ${error.message}');
-    debugPrint('Error response: ${error.response?.data}');
-    
+    if (kDebugMode) {
+      debugPrint('API Error: ${error.type}');
+      debugPrint('Error message: ${error.message}');
+      debugPrint('Error response: ${error.response?.data}');
+    }
+
     if (error.response?.statusCode == 401) {
       await storage.delete(key: 'auth_token');
     }
@@ -87,9 +80,7 @@ class ApiProvider {
   Future<dynamic> get(String endpoint, {Map<String, dynamic>? params}) async {
     try {
       final response = await _dio.get(endpoint, queryParameters: params);
-      if (response.data is List) {
-        return response.data;
-      }
+      if (response.data is List) return response.data;
       return BaseResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -102,7 +93,6 @@ class ApiProvider {
     Map<String, dynamic>? params,
   }) async {
     try {
-      debugPrint('Making POST request to: $endpoint');
       final response = await _dio.post(
         endpoint,
         data: data,
@@ -144,8 +134,11 @@ class ApiProvider {
   }
 
   Exception _handleError(DioException error) {
-    debugPrint('Handling error: ${error.type}');
-    
+    if (kDebugMode) {
+      debugPrint('Handling error: ${error.type}');
+      debugPrint('Error response data: ${error.response?.data}');
+    }
+
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout) {
       return Exception('Connection timeout');
@@ -153,7 +146,6 @@ class ApiProvider {
 
     if (error.response != null) {
       final data = error.response!.data;
-      debugPrint('Error response data: $data');
       if (data is Map<String, dynamic> && data.containsKey('message')) {
         return Exception(data['message']);
       }

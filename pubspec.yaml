@@ -76,9 +76,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - .env
+    - assets/images/
     - assets/images/logo1VN.png
     - assets/images/logo3ENG.png
     - assets/images/default_avatar.png
     - assets/images/logo2JP.png
     - assets/images/logoGoogle.jpg
-    - .env

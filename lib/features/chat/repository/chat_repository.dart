@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import '../../../services/websocket/chatuser/chat_message.dart';
 import '../../../services/websocket/chatuser/chat_socket_service.dart';
 import '../../../services/api/chat/chat_service.dart';
+import '../../../services/api/cloudinary/cloudinary_service.dart';
 
 class ChatRepository {
   final ChatSocketService _socketService;
@@ -34,21 +36,7 @@ class ChatRepository {
         return [];
       }
 
-      return messages.map((item) {
-        try {
-          return ChatMessage(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            senderId: item['sender'] as String,
-            receiverId: item['receiver'] as String,
-            content: item['message'] as String,
-            timestamp: DateTime.parse(item['timestamp'] as String),
-          );
-        } catch (e) {
-          print('Error parsing message: $e');
-          print('Message data: $item');
-          return null;
-        }
-      }).whereType<ChatMessage>().toList();
+      return messages.map((item) => ChatMessage.fromJson(item)).toList();
     } catch (e) {
       print('Error loading messages: $e');
       throw Exception('Failed to load messages: $e');
@@ -56,14 +44,27 @@ class ChatRepository {
   }
 
   // Send a new message
-  Future<void> sendMessage(String content) async {
+  Future<void> sendMessage(String content, {File? imageFile}) async {
     try {
+      String? attachmentUrl;
+      String? attachmentType;
+
+      if (imageFile != null) {
+        // Upload image to Cloudinary
+        attachmentUrl = await CloudinaryService.instance.uploadImage(imageFile);
+        if (attachmentUrl != null) {
+          attachmentType = 'image/${imageFile.path.split('.').last}';
+        }
+      }
+
       final message = ChatMessage(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         senderId: currentUserId,
         receiverId: receiverId,
         content: content,
         timestamp: DateTime.now(),
+        attachmentUrl: attachmentUrl,
+        attachmentType: attachmentType,
       );
       
       _socketService.sendMessage(message);

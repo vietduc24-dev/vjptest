@@ -3,12 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/authentication/cubit/login/login_cubit.dart';
 import 'features/authentication/cubit/register/register_cubit.dart';
 import 'features/authentication/repository/authentication_repository.dart';
-import 'features/chat/cubit/friends/firends_cubit.dart';
-import 'features/chat/repository/friends/friends_repository.dart';
 import 'routes/app_router.dart';
 import 'services/api/api_provider.dart';
 import 'services/api/authentication/auth_service.dart';
-import 'services/api/friends/friends_service.dart';
 import 'services/websocket/chatuser/chat_socket_provider.dart';
 
 class MyApp extends StatelessWidget {
@@ -28,12 +25,6 @@ class MyApp extends StatelessWidget {
           lazy: false,
         ),
         RepositoryProvider(
-          create: (context) => FriendsService(apiProvider: context.read<ApiProvider>()),
-        ),
-        RepositoryProvider(
-          create: (context) => FriendsRepository(friendsService: context.read<FriendsService>()),
-        ),
-        RepositoryProvider(
           create: (context) => ChatSocketProvider(context.read<AuthService>()),
         ),
       ],
@@ -44,9 +35,6 @@ class MyApp extends StatelessWidget {
           ),
           BlocProvider(
             create: (context) => RegisterCubit(authRepository: context.read<AuthenticationRepository>()),
-          ),
-          BlocProvider(
-            create: (context) => FriendsCubit(friendsRepository: context.read<FriendsRepository>()),
           ),
         ],
         child: MaterialApp.router(

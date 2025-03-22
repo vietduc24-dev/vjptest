@@ -34,26 +34,26 @@ class ChatSocketService {
 
     // Listen for messages
     _channel.stream.listen(
-      (message) {
-        print('Received WebSocket message: $message');
-        final data = jsonDecode(message);
+      (dynamic data) {
+        print('Received WebSocket message: $data');
+        final Map<String, dynamic> message = jsonDecode(data);
         
-        if (data['type'] == 'ws_auth_success') {
-          print('WebSocket authentication successful');
+        if (message['type'] == 'ws_auth_success') {
+          print('WebSocket authenticated successfully');
           _isAuthenticated = true;
-        }
-        else if (data['type'] == 'message') {
+        } else if (message['type'] == 'message') {
           final chatMessage = ChatMessage(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            senderId: data['sender'],
-            receiverId: data['receiver'],
-            content: data['message'],
-            timestamp: DateTime.parse(data['timestamp']),
+            id: message['id'].toString(),
+            senderId: message['sender'],
+            receiverId: message['receiver'],
+            content: message['message'] ?? '',
+            timestamp: DateTime.parse(message['timestamp']),
+            attachmentUrl: message['attachmentUrl'],
+            attachmentType: message['attachmentType'],
           );
           _messageController.add(chatMessage);
-        }
-        else if (data['type'] == 'error') {
-          print('WebSocket error message: ${data['message']}');
+        } else if (message['type'] == 'error') {
+          print('WebSocket error: ${message['message']}');
           if (!_isAuthenticated) {
             // Try to authenticate again if token error
             _channel.sink.add(jsonEncode(authMsg));
@@ -88,16 +88,26 @@ class ChatSocketService {
       return;
     }
 
-    // Format message according to server requirements
+    // Determine message type
+    final messageType = message.attachmentUrl != null ? 'image' : 'text';
+    print('Preparing to send ${messageType} message');
+
     final data = {
-      'type': 'message',
-      'sender': username,
+      'type': messageType,
+      'sender': message.senderId,
       'receiver': message.receiverId,
-      'message': message.content
+      'message': message.content,
+      'attachmentUrl': message.attachmentUrl,
+      'attachmentType': message.attachmentType,
     };
     
     print('Sending WebSocket message: $data');
-    _channel.sink.add(jsonEncode(data));
+    try {
+      _channel.sink.add(jsonEncode(data));
+      print('Message sent successfully');
+    } catch (e) {
+      print('Error sending message: $e');
+    }
   }
 
   void dispose() {

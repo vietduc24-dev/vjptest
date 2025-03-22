@@ -8,12 +8,16 @@ import '../features/chat/pages/friends/friends_list_screen.dart';
 import '../features/chat/pages/groups/group_list_screen.dart';
 import '../features/chat/pages/friends/chat_screen.dart';
 import '../features/chat/repository/chat_repository.dart';
+import '../features/chat/cubit/friends/firends_cubit.dart';
+import '../features/chat/repository/friends/friends_repository.dart';
 import '../services/api/friends/friends_load/list_friends.dart';
+import '../services/api/friends/friends_service.dart';
 import '../services/websocket/chatuser/chat_socket_provider.dart';
+import '../services/api/api_provider.dart';
+import '../services/api/authentication/auth_service.dart';
 import '../common/widgets/scaffold_with_nav_bar.dart';
-
+import '../features/chat/cubit/chat/chat_cubit.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-
 
 final goRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
@@ -52,7 +56,22 @@ final goRouter = GoRouter(
             GoRoute(
               path: '/friends',
               name: 'friends',
-              builder: (context, state) => const FriendsListScreen(),
+              builder: (context, state) {
+                return MultiRepositoryProvider(
+                  providers: [
+                    RepositoryProvider(
+                      create: (context) => FriendsService(apiProvider: context.read<ApiProvider>()),
+                    ),
+                    RepositoryProvider(
+                      create: (context) => FriendsRepository(friendsService: context.read<FriendsService>()),
+                    ),
+                  ],
+                  child: BlocProvider(
+                    create: (context) => FriendsCubit(friendsRepository: context.read<FriendsRepository>())..loadFriends(),
+                    child: const FriendsListScreen(),
+                  ),
+                );
+              },
               routes: [
                 GoRoute(
                   path: 'chat/:username',
@@ -75,16 +94,19 @@ final goRouter = GoRouter(
                           }
 
                           return RepositoryProvider(
-                            create: (context) => ChatRepository(
-                              socketService: snapshot.data!,
-                              currentUserId: currentUserId,
-                              receiverId: friend.username,
-                            ),
-                            child: ChatScreen(
-                              friend: friend,
-                              currentUserId: currentUserId,
-                            ),
-                          );
+                          create: (context) => ChatRepository(
+                           socketService: snapshot.data!,
+                           currentUserId: currentUserId,
+                            receiverId: friend.username,
+  ),
+  child: BlocProvider(
+    create: (context) => ChatCubit(repository: context.read<ChatRepository>()),
+    child: ChatScreen(
+      friend: friend,
+      currentUserId: currentUserId,
+    ),
+  ),
+);
                         },
                       ),
                     );
