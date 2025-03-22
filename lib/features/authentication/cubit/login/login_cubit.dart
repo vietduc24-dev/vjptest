@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../repository/authentication_repository.dart';
 import 'login_state.dart';
-
+import '../../../../common/bloc_status.dart';
 class LoginCubit extends Cubit<LoginState> {
   final AuthenticationRepository _authRepository;
 
@@ -21,7 +21,7 @@ class LoginCubit extends Cubit<LoginState> {
   }) async {
     try {
       debugPrint('Starting login process for username: $username');
-      emit(state.copyWith(status: LoginStatus.loading));
+      emit(state.copyWith(status: BlocStatus.loading));
 
       final user = await _authRepository.login(
         username: username,
@@ -30,7 +30,7 @@ class LoginCubit extends Cubit<LoginState> {
 
       debugPrint('Login successful for user: ${user.username}');
       emit(state.copyWith(
-        status: LoginStatus.success,
+        status: BlocStatus.success,
         user: user,
         errorMessage: null,
       ));
@@ -38,7 +38,7 @@ class LoginCubit extends Cubit<LoginState> {
       debugPrint('Login error: $e');
       debugPrint('Stack trace: $stackTrace');
       emit(state.copyWith(
-        status: LoginStatus.error,
+        status: BlocStatus.failure,
         errorMessage: e.toString(),
       ));
     }
@@ -47,7 +47,7 @@ class LoginCubit extends Cubit<LoginState> {
   Future<void> logout() async {
     try {
       debugPrint('Starting logout process');
-      emit(state.copyWith(status: LoginStatus.loading));
+      emit(state.copyWith(status: BlocStatus.loading));
 
       await _authRepository.logout();
 
@@ -57,7 +57,7 @@ class LoginCubit extends Cubit<LoginState> {
       debugPrint('Logout error: $e');
       debugPrint('Stack trace: $stackTrace');
       emit(state.copyWith(
-        status: LoginStatus.error,
+        status: BlocStatus.failure,
         errorMessage: e.toString(),
       ));
     }

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../features/authentication/pages/login_page.dart';
 import '../features/authentication/pages/register_page.dart';
 import '../features/company/pages/home_page.dart';
 import '../features/chat/pages/friends/friends_list_screen.dart';
 import '../features/chat/pages/groups/group_list_screen.dart';
-import '../widgets/scaffold_with_nav_bar.dart';
+import '../features/chat/pages/friends/chat_screen.dart';
+import '../features/chat/repository/chat_repository.dart';
+import '../services/api/friends/friends_load/list_friends.dart';
+import '../services/websocket/chatuser/chat_socket_provider.dart';
+import '../common/widgets/scaffold_with_nav_bar.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
 
 final goRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
@@ -32,7 +37,7 @@ final goRouter = GoRouter(
       },
       branches: [
         StatefulShellBranch(
-          navigatorKey: GlobalKey<NavigatorState>(), // Mỗi branch có navigator riêng
+          navigatorKey: GlobalKey<NavigatorState>(),
           routes: [
             GoRoute(
               path: '/home',
@@ -48,6 +53,44 @@ final goRouter = GoRouter(
               path: '/friends',
               name: 'friends',
               builder: (context, state) => const FriendsListScreen(),
+              routes: [
+                GoRoute(
+                  path: 'chat/:username',
+                  name: 'chat',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) {
+                    final friend = state.extra as Friend;
+                    final currentUserId = state.uri.queryParameters['currentUserId'] ?? '';
+                    
+                    return Material(
+                      child: FutureBuilder(
+                        future: context.read<ChatSocketProvider>().getSocketService(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          }
+                          
+                          if (!snapshot.hasData) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+
+                          return RepositoryProvider(
+                            create: (context) => ChatRepository(
+                              socketService: snapshot.data!,
+                              currentUserId: currentUserId,
+                              receiverId: friend.username,
+                            ),
+                            child: ChatScreen(
+                              friend: friend,
+                              currentUserId: currentUserId,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -78,6 +121,15 @@ class AppRouter {
   static void goToFriends(BuildContext context) => context.goNamed('friends');
 
   static void goToGroups(BuildContext context) => context.goNamed('groups');
+  
+  static void goToChat(BuildContext context, Friend friend, String currentUserId) {
+    context.goNamed(
+      'chat',
+      pathParameters: {'username': friend.username},
+      queryParameters: {'currentUserId': currentUserId},
+      extra: friend,
+    );
+  }
   
   static void pop(BuildContext context) => context.pop();
 } 

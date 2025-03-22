@@ -1,23 +1,23 @@
 import 'package:equatable/equatable.dart';
 import '../../../../models/user_model.dart';
+import '../../../../common/bloc_status.dart';
 
-enum LoginStatus { initial, loading, success, error }
 
 class LoginState extends Equatable {
-  final LoginStatus status;
+  final BlocStatus status;
   final String? errorMessage;
   final String? username;
   final User? user;
 
   const LoginState({
-    this.status = LoginStatus.initial,
+    this.status = BlocStatus.initial,
     this.errorMessage,
     this.username,
     this.user,
   });
 
   LoginState copyWith({
-    LoginStatus? status,
+    BlocStatus? status,
     String? errorMessage,
     String? username,
     User? user,

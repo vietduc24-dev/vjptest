@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vjptest/widgets/page_wrapper.dart';
+import 'package:vjptest/common/widgets/page_wrapper.dart';
 
 class GroupListScreen extends StatelessWidget {
   const GroupListScreen({super.key});

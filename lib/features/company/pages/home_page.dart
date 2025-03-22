@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../models/user_model.dart';
-import '../../../widgets/toast.dart';
+import '../../../common/widgets/toast.dart';
 import '../../authentication/cubit/login/login_cubit.dart';
 import '../../authentication/cubit/login/login_state.dart';
-import '../../../widgets/page_wrapper.dart';
+import '../../../common/widgets/page_wrapper.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
