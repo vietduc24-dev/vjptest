@@ -2,7 +2,7 @@ import '../../base/base_reponse.dart';
 import '../../websocket/chatuser/chat_message.dart';
 import 'api_provider_chat.dart';
 
-import 'chat_endpoints.dart'; // ✅ import lại đúng chỗ
+import 'chat_endpoints.dart'; 
 
 class ChatService {
   static final ChatService instance = ChatService._internal();
@@ -10,8 +10,27 @@ class ChatService {
 
   ChatService._internal();
 
-  Future<BaseResponse> getPersonalMessages(String username) async {
-    return _apiProvider.get('${ChatApiConstants.personalMessages}/$username');
+  Future<BaseResponse> getPersonalMessages(String username, {
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final response = await _apiProvider.get(
+      '${ChatApiConstants.personalMessages}/$username',
+      queryParameters: {
+        'page': page.toString(),
+        'limit': limit.toString(),
+      }
+    );
+
+    if (response.success) {
+      return BaseResponse(
+        success: true,
+        data: response.data,
+        message: 'Success',
+      );
+    }
+
+    return response;
   }
 
   Future<BaseResponse> getGroupMessages(String groupId) async {

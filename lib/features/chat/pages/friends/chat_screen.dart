@@ -31,6 +31,8 @@ class _ChatScreenState extends State<ChatScreen> {
   late final ChatCubit _chatCubit;
   bool _showScrollButton = false;
   List<ChatMessage> _previousMessages = [];
+  bool _isLoadingMore = false;
+  bool _hasMoreMessages = true;
 
   @override
   void initState() {
@@ -78,6 +80,31 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _loadMoreMessages() async {
+    if (_isLoadingMore || !_hasMoreMessages) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final moreMessages = await _chatCubit.loadMoreMessages();
+      
+      if (moreMessages.isEmpty) {
+        setState(() {
+          _hasMoreMessages = false;
+        });
+      }
+    } catch (e) {
+      // Handle error if needed
+      debugPrint('Error loading more messages: $e');
+    } finally {
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
@@ -94,7 +121,6 @@ class _ChatScreenState extends State<ChatScreen> {
               child: BlocConsumer<ChatCubit, ChatState>(
                 listener: (context, state) {
                   if (state is ChatConnected) {
-                    // Cuộn xuống khi có tin nhắn mới (không phải typing status)
                     if (state.messages.isNotEmpty && _previousMessages.length < state.messages.length) {
                       final lastMessage = state.messages.last;
                       if (!_isTypingMessage(lastMessage)) {
@@ -129,6 +155,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       showScrollButton: _showScrollButton,
                       onScrollToBottom: () => _scrollToBottom(),
                       isTypingMessage: _isTypingMessage,
+                      isLoadingMore: _isLoadingMore,
+                      hasMoreMessages: _hasMoreMessages,
+                      onLoadMore: _loadMoreMessages,
                     );
                   }
 

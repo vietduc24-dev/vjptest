@@ -14,6 +14,8 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<ChatMessage>? _messageSubscription;
   StreamSubscription<Map<String, dynamic>>? _statusSubscription;
   bool _isClosed = false;
+  int _currentPage = 1;
+  bool _hasMore = true;
 
   ChatCubit({
     required ChatRepository repository,
@@ -28,12 +30,19 @@ class ChatCubit extends Cubit<ChatState> {
     try {
       emit(ChatLoading());
       
-      final messages = await _chatRepository.getInitialMessages();
+      final result = await _chatRepository.getInitialMessages();
+      final Map<String, dynamic> data = result as Map<String, dynamic>;
+      
+      _messages = (data['messages'] as List).cast<ChatMessage>();
+      _hasMore = data['hasMore'] as bool;
+      _currentPage = data['page'] as int;
       
       if (_isClosed) return;
       emit(ChatConnected(
-        messages: messages,
+        messages: _messages,
         isTyping: false,
+        hasMore: _hasMore,
+        currentPage: _currentPage,
       ));
 
       _messageSubscription = _chatRepository.messageStream.listen((message) {
@@ -41,10 +50,13 @@ class ChatCubit extends Cubit<ChatState> {
         
         if (state is ChatConnected) {
           final currentState = state as ChatConnected;
+          _messages = [message, ...currentState.messages];
           emit(ChatConnected(
-            messages: [...currentState.messages, message],
+            messages: _messages,
             isTyping: currentState.isTyping,
             typingUserId: currentState.typingUserId,
+            hasMore: _hasMore,
+            currentPage: _currentPage,
           ));
         }
       });
@@ -57,7 +69,6 @@ class ChatCubit extends Cubit<ChatState> {
           final status = data['status'] as String;
           final senderId = data['senderId'] as String;
           
-          // Only show typing indicator if the sender is not the current user
           if (senderId != _chatRepository.currentUserId) {
             final isTyping = status == 'typing';
             
@@ -65,6 +76,8 @@ class ChatCubit extends Cubit<ChatState> {
               messages: currentState.messages,
               isTyping: isTyping,
               typingUserId: isTyping ? senderId : null,
+              hasMore: _hasMore,
+              currentPage: _currentPage,
             ));
           }
         }
@@ -104,6 +117,41 @@ class ChatCubit extends Cubit<ChatState> {
       });
     } else {
       _chatRepository.sendTypingStatus(false);
+    }
+  }
+
+  Future<List<ChatMessage>> loadMoreMessages() async {
+    if (_isClosed || !_hasMore || state.status != BlocStatus.success) {
+      return [];
+    }
+
+    try {
+      final nextPage = _currentPage + 1;
+      final result = await _chatRepository.getInitialMessages(limit: 20, page: nextPage);
+      final Map<String, dynamic> data = result as Map<String, dynamic>;
+      
+      final List<ChatMessage> moreMessages = (data['messages'] as List).cast<ChatMessage>();
+      _hasMore = data['hasMore'] as bool;
+      _currentPage = data['page'] as int;
+
+      if (moreMessages.isNotEmpty) {
+        _messages = [..._messages, ...moreMessages];
+        
+        if (state is ChatConnected) {
+          emit(ChatConnected(
+            messages: _messages,
+            isTyping: (state as ChatConnected).isTyping,
+            typingUserId: (state as ChatConnected).typingUserId,
+            hasMore: _hasMore,
+            currentPage: _currentPage,
+          ));
+        }
+      }
+
+      return moreMessages;
+    } catch (e) {
+      print('Error loading more messages: $e');
+      return [];
     }
   }
 

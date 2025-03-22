@@ -13,6 +13,9 @@ class ChatMessages extends StatelessWidget {
   final bool showScrollButton;
   final VoidCallback onScrollToBottom;
   final bool Function(ChatMessage) isTypingMessage;
+  final bool isLoadingMore;
+  final VoidCallback onLoadMore;
+  final bool hasMoreMessages;
 
   const ChatMessages({
     super.key,
@@ -25,30 +28,63 @@ class ChatMessages extends StatelessWidget {
     required this.showScrollButton,
     required this.onScrollToBottom,
     required this.isTypingMessage,
+    required this.isLoadingMore,
+    required this.onLoadMore,
+    required this.hasMoreMessages,
   });
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ListView.builder(
-          controller: scrollController,
-          reverse: true,
-          padding: EdgeInsets.only(
-            left: 8,
-            right: 8,
-            top: 16,
-            bottom: isTyping ? 60 : 16,
-          ),
-          itemCount: messages.length,
-          itemBuilder: (context, index) {
-            final message = messages[messages.length - 1 - index];
-            final isMe = message.senderId == currentUserId;
-            return ChatMessageItem(
-              message: message,
-              isMe: isMe,
-            );
+        NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (scrollInfo.metrics.pixels <= scrollInfo.metrics.minScrollExtent + 200 &&
+                !isLoadingMore &&
+                hasMoreMessages) {
+              onLoadMore();
+            }
+            return true;
           },
+          child: Column(
+            children: [
+              if (hasMoreMessages)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  alignment: Alignment.center,
+                  child: isLoadingMore
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const SizedBox(height: 0),
+                ),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  reverse: true,
+                  padding: EdgeInsets.only(
+                    left: 8,
+                    right: 8,
+                    top: 16,
+                    bottom: isTyping ? 60 : 16,
+                  ),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    final isMe = message.senderId == currentUserId;
+                    return ChatMessageItem(
+                      message: message,
+                      isMe: isMe,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
         if (showScrollButton)
           Positioned(

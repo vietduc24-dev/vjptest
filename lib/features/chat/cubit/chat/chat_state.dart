@@ -19,11 +19,14 @@ class ChatConnected extends ChatState {
   final List<ChatMessage> messages;
   final bool isTyping;
   final String? typingUserId;
-
+ final bool hasMore;  
+  final int currentPage; 
   ChatConnected({
     required this.messages,
     required this.isTyping,
     this.typingUserId,
+    this.hasMore = true,
+    this.currentPage = 1,
   }) : super(BlocStatus.success);
 }
 

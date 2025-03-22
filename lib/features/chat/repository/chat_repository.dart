@@ -23,24 +23,37 @@ class ChatRepository {
     _socketService.statusStream.map((jsonStr) => jsonDecode(jsonStr) as Map<String, dynamic>);
 
   // Load initial messages
-  Future<List<ChatMessage>> getInitialMessages() async {
+   Future<Map<String, dynamic>> getInitialMessages({int page = 1, int limit = 20}) async {
     try {
-      final response = await ChatService.instance.getPersonalMessages(receiverId);
+      final response = await ChatService.instance.getPersonalMessages(
+        receiverId,
+        page: page,
+        limit: limit,
+      );
 
       if (!response.success) {
         throw Exception(response.message ?? 'Failed to load messages');
       }
 
-      final List<dynamic> messages = response.data as List<dynamic>;
-      if (messages.isEmpty) {
-        return [];
-      }
-
-      return messages.map((item) => ChatMessage.fromJson(item)).toList();
+      final data = response.data as Map<String, dynamic>;
+      final List<dynamic> rawMessages = data['messages'] as List<dynamic>;
+      final messages = rawMessages.map((msg) => ChatMessage.fromJson(msg)).toList();
+      
+      // Sort messages by timestamp in descending order (newest first)
+      messages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      return {
+        'messages': messages,
+        'hasMore': data['hasMore'] as bool,
+        'total': data['total'] as int,
+        'page': data['page'] as int,
+        'limit': data['limit'] as int,
+      };
     } catch (e) {
       print('Error loading messages: $e');
       throw Exception('Failed to load messages: $e');
     }
+  
   }
 
   // Send a new message
