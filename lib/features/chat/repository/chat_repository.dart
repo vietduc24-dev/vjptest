@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import '../../../services/websocket/chatuser/chat_message.dart';
 import '../../../services/websocket/chatuser/chat_socket_service.dart';
 import '../../../services/api/chat/chat_service.dart';
+import '../../../services/api/cloudinary/cloudinary_service.dart';
 
 class ChatRepository {
   final ChatSocketService _socketService;
@@ -21,49 +23,61 @@ class ChatRepository {
     _socketService.statusStream.map((jsonStr) => jsonDecode(jsonStr) as Map<String, dynamic>);
 
   // Load initial messages
-  Future<List<ChatMessage>> getInitialMessages() async {
+   Future<Map<String, dynamic>> getInitialMessages({int page = 1, int limit = 20}) async {
     try {
-      final response = await ChatService.instance.getPersonalMessages(receiverId);
+      final response = await ChatService.instance.getPersonalMessages(
+        receiverId,
+        page: page,
+        limit: limit,
+      );
 
       if (!response.success) {
         throw Exception(response.message ?? 'Failed to load messages');
       }
 
-      final List<dynamic> messages = response.data as List<dynamic>;
-      if (messages.isEmpty) {
-        return [];
-      }
-
-      return messages.map((item) {
-        try {
-          return ChatMessage(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            senderId: item['sender'] as String,
-            receiverId: item['receiver'] as String,
-            content: item['message'] as String,
-            timestamp: DateTime.parse(item['timestamp'] as String),
-          );
-        } catch (e) {
-          print('Error parsing message: $e');
-          print('Message data: $item');
-          return null;
-        }
-      }).whereType<ChatMessage>().toList();
+      final data = response.data as Map<String, dynamic>;
+      final List<dynamic> rawMessages = data['messages'] as List<dynamic>;
+      final messages = rawMessages.map((msg) => ChatMessage.fromJson(msg)).toList();
+      
+      // Sort messages by timestamp in descending order (newest first)
+      messages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      return {
+        'messages': messages,
+        'hasMore': data['hasMore'] as bool,
+        'total': data['total'] as int,
+        'page': data['page'] as int,
+        'limit': data['limit'] as int,
+      };
     } catch (e) {
       print('Error loading messages: $e');
       throw Exception('Failed to load messages: $e');
     }
+  
   }
 
   // Send a new message
-  Future<void> sendMessage(String content) async {
+  Future<void> sendMessage(String content, {File? imageFile}) async {
     try {
+      String? attachmentUrl;
+      String? attachmentType;
+
+      if (imageFile != null) {
+        // Upload image to Cloudinary
+        attachmentUrl = await CloudinaryService.instance.uploadImage(imageFile);
+        if (attachmentUrl != null) {
+          attachmentType = 'image/${imageFile.path.split('.').last}';
+        }
+      }
+
       final message = ChatMessage(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         senderId: currentUserId,
         receiverId: receiverId,
         content: content,
         timestamp: DateTime.now(),
+        attachmentUrl: attachmentUrl,
+        attachmentType: attachmentType,
       );
       
       _socketService.sendMessage(message);

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../base/method_request.dart';
 
@@ -29,18 +30,33 @@ class DefaultHeader {
   static final DefaultHeader instance = DefaultHeader._();
 
   Map<String, String> addDefaultHeader() {
-    Map<String, String> header = <String, String>{};
-    header["Content-Type"] = "application/json";
-    return header;
+    return {
+      "Content-Type": "application/json",
+    };
   }
 }
 
 class BaseEndpoint {
-  static String get baseUrl => dotenv.env['API_URL'] ?? 'http://localhost:3000/api';
+  static String get baseUrl {
+    if (kIsWeb) {
+      return dotenv.env['API_URL_WEB'] ?? 'https://your-web-api.com/api';
+    }
+
+    if (Platform.isAndroid) {
+      return dotenv.env['API_URL_ANDROID'] ?? 'http://10.0.2.2:3000/api';
+    }
+
+    if (Platform.isIOS) {
+      return dotenv.env['API_URL_IOS'] ?? 'http://localhost:3000/api';
+    }
+
+    // Máy thật (device) — nên dùng IP LAN thật của backend
+    return dotenv.env['API_URL'] ?? 'http://192.168.1.10:3000/api';
+  }
+
   static String get apiKey => dotenv.env['API_KEY'] ?? '';
 
-  // Add other endpoints here
   static String getFullUrl(String endpoint) {
-    return baseUrl + endpoint;
+    return '$baseUrl$endpoint';
   }
 }

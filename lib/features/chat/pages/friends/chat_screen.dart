@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../services/api/friends/friends_load/list_friends.dart';
@@ -25,23 +26,18 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _messageController = TextEditingController();
+  final _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late final ChatCubit _chatCubit;
   bool _showScrollButton = false;
   List<ChatMessage> _previousMessages = [];
-
-  bool _isTypingMessage(ChatMessage message) {
-    return message.content == 'typing' || 
-           message.content == 'stopped_typing' || 
-           message.content == 'offline';
-  }
+  bool _isLoadingMore = false;
+  bool _hasMoreMessages = true;
 
   @override
   void initState() {
     super.initState();
-    final repository = context.read<ChatRepository>();
-    _chatCubit = ChatCubit(repository: repository);
+    _chatCubit = context.read<ChatCubit>();
 
     _scrollController.addListener(() {
       final showButton = _scrollController.position.pixels > 500;
@@ -53,7 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    _messageController.dispose();
+    _textController.dispose();
     _scrollController.dispose();
     _chatCubit.close();
     super.dispose();
@@ -73,12 +69,40 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _handleSendMessage() {
-    final message = _messageController.text.trim();
-    if (message.isEmpty) return;
+  void _handleTypingChanged(String text) {
+    _chatCubit.sendTypingStatus(text.isNotEmpty);
+  }
 
-    _chatCubit.sendMessage(message);
-    _messageController.clear();
+  void _handleSendMessage(String message, {File? imageFile}) {
+    if (message.isNotEmpty || imageFile != null) {
+      _chatCubit.sendMessage(message, imageFile: imageFile);
+      _textController.clear();
+    }
+  }
+
+  Future<void> _loadMoreMessages() async {
+    if (_isLoadingMore || !_hasMoreMessages) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final moreMessages = await _chatCubit.loadMoreMessages();
+      
+      if (moreMessages.isEmpty) {
+        setState(() {
+          _hasMoreMessages = false;
+        });
+      }
+    } catch (e) {
+      // Handle error if needed
+      debugPrint('Error loading more messages: $e');
+    } finally {
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
   }
 
   @override
@@ -97,7 +121,6 @@ class _ChatScreenState extends State<ChatScreen> {
               child: BlocConsumer<ChatCubit, ChatState>(
                 listener: (context, state) {
                   if (state is ChatConnected) {
-                    // Cuộn xuống khi có tin nhắn mới (không phải typing status)
                     if (state.messages.isNotEmpty && _previousMessages.length < state.messages.length) {
                       final lastMessage = state.messages.last;
                       if (!_isTypingMessage(lastMessage)) {
@@ -132,6 +155,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       showScrollButton: _showScrollButton,
                       onScrollToBottom: () => _scrollToBottom(),
                       isTypingMessage: _isTypingMessage,
+                      isLoadingMore: _isLoadingMore,
+                      hasMoreMessages: _hasMoreMessages,
+                      onLoadMore: _loadMoreMessages,
                     );
                   }
 
@@ -140,16 +166,20 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             ChatInput(
-              controller: _messageController,
-              onTypingChanged: (value) {
-                _chatCubit.sendTypingStatus(value.isNotEmpty);
-              },
+              controller: _textController,
+              onTypingChanged: _handleTypingChanged,
               onSendPressed: _handleSendMessage,
-              onSubmitted: (_) => _handleSendMessage(),
+              onSubmitted: (text) => _handleSendMessage(text),
             ),
           ],
         ),
       ),
     );
+  }
+
+  bool _isTypingMessage(ChatMessage message) {
+    return message.content == 'typing' || 
+           message.content == 'stopped_typing' || 
+           message.content == 'offline';
   }
 } 

@@ -7,14 +7,16 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiProviderChat {
   final Dio _dio;
   final storage = const FlutterSecureStorage();
-  static  String baseUrl = BaseEndpoint.baseUrl; // Update for Android emulator
+  static String baseUrl = BaseEndpoint.baseUrl;
 
   ApiProviderChat() : _dio = Dio() {
     _dio.options.baseUrl = baseUrl;
     _dio.options.connectTimeout = const Duration(seconds: 30);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
 
-    debugPrint('Chat API Provider initialized with baseUrl: $baseUrl');
+    if (kDebugMode) {
+      debugPrint('Chat API Provider initialized with baseUrl: $baseUrl');
+    }
 
     _dio.interceptors.add(
       InterceptorsWrapper(
@@ -29,14 +31,15 @@ class ApiProviderChat {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Add auth token if available
     final token = await storage.read(key: 'auth_token');
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
-    debugPrint('Chat API Request: ${options.method} ${options.path}');
-    debugPrint('Headers: ${options.headers}');
-    debugPrint('Data: ${options.data}');
+
+    if (kDebugMode) {
+      debugPrint('Chat API Request: ${options.method} ${options.path}');
+    }
+
     return handler.next(options);
   }
 
@@ -44,8 +47,9 @@ class ApiProviderChat {
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
-    debugPrint('Chat API Response: ${response.statusCode}');
-    debugPrint('Response data: ${response.data}');
+    if (kDebugMode) {
+      debugPrint('Chat API Response: ${response.statusCode}');
+    }
     return handler.next(response);
   }
 
@@ -53,9 +57,10 @@ class ApiProviderChat {
     DioException error,
     ErrorInterceptorHandler handler,
   ) async {
-    debugPrint('Chat API Error: ${error.type}');
-    debugPrint('Error message: ${error.message}');
-    debugPrint('Error response: ${error.response?.data}');
+    if (kDebugMode) {
+      debugPrint('Chat API Error: ${error.type}');
+      debugPrint('Error message: ${error.message}');
+    }
     return handler.next(error);
   }
 
@@ -70,7 +75,6 @@ class ApiProviderChat {
       );
 
       if (response.statusCode == 200) {
-        // Handle both empty array and null cases
         final data = response.data;
         if (data == null || (data is List && data.isEmpty)) {
           return BaseResponse(
@@ -129,7 +133,7 @@ class ApiProviderChat {
 
   BaseResponse _handleError(DioException error) {
     String message;
-    
+
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout) {
       message = 'Connection timeout';
@@ -150,4 +154,4 @@ class ApiProviderChat {
       data: null,
     );
   }
-} 
+}
