@@ -66,10 +66,32 @@ class FriendsCubit extends Cubit<FriendsState> {
     try {
       final response = await _friendsRepository.sendFriendRequest(username);
       if (response.success) {
-        emit(FriendRequestSent(response.message ?? 'Friend request sent successfully'));
-        loadFriends(refresh: true); // Reload the lists
+        final currentState = state;
+        if (currentState is FriendsLoaded) {
+          final updatedResults = currentState.searchResults.map((user) {
+            if (user.username == username) {
+              return Friend(
+                username: user.username,
+                fullName: user.fullName,
+                avatar: user.avatar,
+                friendshipStatus: 'pending_sent',
+              );
+            }
+            return user;
+          }).toList();
+
+          // Emit success message first
+          emit(FriendRequestSent(response.message ?? 'Đã gửi lời mời kết bạn'));
+          
+          // Then restore the state with updated results
+          emit(FriendsLoaded(
+            friends: currentState.friends,
+            friendRequests: currentState.friendRequests,
+            searchResults: updatedResults,
+          ));
+        }
       } else {
-        emit(FriendsError(response.message ?? 'Failed to send friend request'));
+        emit(FriendsError(response.message ?? 'Không thể gửi lời mời kết bạn'));
       }
     } catch (e) {
       emit(FriendsError(e.toString()));
@@ -80,10 +102,32 @@ class FriendsCubit extends Cubit<FriendsState> {
     try {
       final response = await _friendsRepository.acceptFriendRequest(username);
       if (response.success) {
-        emit(FriendRequestResponded(response.message ?? 'Friend request accepted'));
-        loadFriends(refresh: true); // Reload the lists
+        final currentState = state;
+        if (currentState is FriendsLoaded) {
+          final updatedResults = currentState.searchResults.map((user) {
+            if (user.username == username) {
+              return Friend(
+                username: user.username,
+                fullName: user.fullName,
+                avatar: user.avatar,
+                friendshipStatus: 'friend',
+              );
+            }
+            return user;
+          }).toList();
+
+          // Emit success message first
+          emit(FriendRequestResponded(response.message ?? 'Đã chấp nhận lời mời kết bạn'));
+          
+          // Then restore the state with updated results
+          emit(FriendsLoaded(
+            friends: currentState.friends,
+            friendRequests: currentState.friendRequests,
+            searchResults: updatedResults,
+          ));
+        }
       } else {
-        emit(FriendsError(response.message ?? 'Failed to accept friend request'));
+        emit(FriendsError(response.message ?? 'Không thể chấp nhận lời mời kết bạn'));
       }
     } catch (e) {
       emit(FriendsError(e.toString()));
@@ -94,10 +138,55 @@ class FriendsCubit extends Cubit<FriendsState> {
     try {
       final response = await _friendsRepository.rejectFriendRequest(username);
       if (response.success) {
-        emit(FriendRequestResponded(response.message ?? 'Friend request rejected'));
-        loadFriends(refresh: true); // Reload the lists
+        final currentState = state;
+        if (currentState is FriendsLoaded) {
+          final updatedResults = currentState.searchResults.map((user) {
+            if (user.username == username) {
+              return Friend(
+                username: user.username,
+                fullName: user.fullName,
+                avatar: user.avatar,
+                friendshipStatus: 'none',
+              );
+            }
+            return user;
+          }).toList();
+
+          // Emit success message first
+          emit(FriendRequestResponded(response.message ?? 'Đã từ chối lời mời kết bạn'));
+          
+          // Then restore the state with updated results
+          emit(FriendsLoaded(
+            friends: currentState.friends,
+            friendRequests: currentState.friendRequests,
+            searchResults: updatedResults,
+          ));
+        }
       } else {
-        emit(FriendsError(response.message ?? 'Failed to reject friend request'));
+        emit(FriendsError(response.message ?? 'Không thể từ chối lời mời kết bạn'));
+      }
+    } catch (e) {
+      emit(FriendsError(e.toString()));
+    }
+  }
+
+  Future<void> searchUsers(String query) async {
+    try {
+      emit(FriendsLoading(isFirstLoad: false));
+      final results = await _friendsRepository.searchUsers(query);
+      final currentState = state;
+      if (currentState is FriendsLoaded) {
+        emit(FriendsLoaded(
+          friends: currentState.friends,
+          friendRequests: currentState.friendRequests,
+          searchResults: results,
+        ));
+      } else {
+        emit(FriendsLoaded(
+          friends: PaginatedList.empty(),
+          friendRequests: PaginatedList.empty(),
+          searchResults: results,
+        ));
       }
     } catch (e) {
       emit(FriendsError(e.toString()));

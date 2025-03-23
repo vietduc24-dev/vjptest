@@ -15,13 +15,12 @@ class PageWrapper extends StatelessWidget {
     return PopScope(
       canPop: canPop,
       onPopInvoked: (didPop) {
-        if (!didPop) return;
-        if (!canPop) {
-          // Nếu không thể pop, giữ lại màn hình
-          return;
+        // Nếu không cho pop, chặn lại
+        if (!didPop && !canPop) {
+          // Chặn gesture back
         }
       },
       child: child,
     );
   }
-} 
+}

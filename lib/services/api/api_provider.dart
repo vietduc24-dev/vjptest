@@ -48,8 +48,13 @@ class ApiProvider {
     RequestInterceptorHandler handler,
   ) async {
     final token = await storage.read(key: 'auth_token');
+    debugPrint('🔑 Token from storage: $token');
+    
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
+      debugPrint('📤 Request headers: ${options.headers}');
+    } else {
+      debugPrint('⚠️ No token found in storage');
     }
     return handler.next(options);
   }

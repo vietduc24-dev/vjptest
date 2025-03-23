@@ -111,6 +111,7 @@ class _ChatScreenState extends State<ChatScreen> {
       value: _chatCubit,
       child: Scaffold(
         backgroundColor: Colors.white,
+        extendBodyBehindAppBar: false,
         appBar: ChatAppBar(
           friend: widget.friend,
           onBackPressed: () => Navigator.of(context).pop(),

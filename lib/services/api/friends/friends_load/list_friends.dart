@@ -6,12 +6,14 @@ class Friend {
   final String fullName;
   final String? avatar;
   final String? status;
+  final String friendshipStatus; // 'friend', 'pending_sent', 'pending_received', 'none'
 
   Friend({
     required this.username,
     required this.fullName,
     this.avatar,
     this.status,
+    this.friendshipStatus = 'none',
   });
 
   factory Friend.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class Friend {
       fullName: json['fullName'] as String,
       avatar: json['avatarUrl'] as String?,
       status: json['status'] as String?,
+      friendshipStatus: json['friendshipStatus'] as String? ?? 'none',
     );
   }
 
@@ -29,6 +32,7 @@ class Friend {
       'fullName': fullName,
       'avatarUrl': avatar,
       'status': status,
+      'friendshipStatus': friendshipStatus,
     };
   }
 }

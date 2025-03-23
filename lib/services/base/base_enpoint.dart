@@ -39,7 +39,7 @@ class DefaultHeader {
 class BaseEndpoint {
   static String get baseUrl {
     if (kIsWeb) {
-      return dotenv.env['API_URL_WEB'] ?? 'https://your-web-api.com/api';
+      return dotenv.env['API_URL_WEB'] ?? 'http://your-web-api.com/api';
     }
 
     if (Platform.isAndroid) {

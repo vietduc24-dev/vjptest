@@ -18,10 +18,12 @@ class FriendsLoading extends FriendsState {
 class FriendsLoaded extends FriendsState {
   final PaginatedList<Friend> friends;
   final PaginatedList<Friend> friendRequests;
+  final List<Friend> searchResults;
 
   FriendsLoaded({
     required this.friends,
     required this.friendRequests,
+    this.searchResults = const [],
   });
 }
 
