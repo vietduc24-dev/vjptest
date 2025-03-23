@@ -112,10 +112,10 @@ class FriendsService {
           'to': toUsername,
         },
       );
-
+      clearCache(); // Clear cache after sending request
       return response;
     } catch (e) {
-      rethrow;
+      throw Exception('Failed to send friend request: $e');
     }
   }
 

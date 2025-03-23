@@ -10,6 +10,9 @@ import '../../widgets/chat_app_bar.dart';
 import '../../widgets/chat_input.dart';
 import '../../widgets/chat_messages.dart';
 import '../../widgets/chat_error_view.dart';
+import '../../widgets/translation_language_selector.dart';
+import '../../../../services/translation/message_translation_service.dart';
+import '../../widgets/message_bubble.dart';
 
 class ChatScreen extends StatefulWidget {
   final Friend friend;
@@ -60,7 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
     
     if (animated) {
       _scrollController.animateTo(
-        0, // Scroll to top since ListView is reversed
+        0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
@@ -96,13 +99,18 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     } catch (e) {
-      // Handle error if needed
       debugPrint('Error loading more messages: $e');
     } finally {
       setState(() {
         _isLoadingMore = false;
       });
     }
+  }
+
+  bool _isTypingMessage(ChatMessage message) {
+    return message.content == 'typing' || 
+           message.content == 'stopped_typing' || 
+           message.content == 'offline';
   }
 
   @override
@@ -115,6 +123,9 @@ class _ChatScreenState extends State<ChatScreen> {
         appBar: ChatAppBar(
           friend: widget.friend,
           onBackPressed: () => Navigator.of(context).pop(),
+          actions: [
+            const TranslationLanguageSelector(),
+          ],
         ),
         body: Column(
           children: [
@@ -176,11 +187,5 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
-  }
-
-  bool _isTypingMessage(ChatMessage message) {
-    return message.content == 'typing' || 
-           message.content == 'stopped_typing' || 
-           message.content == 'offline';
   }
 } 

@@ -4,11 +4,13 @@ import '../../../services/api/friends/friends_load/list_friends.dart';
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Friend friend;
   final VoidCallback onBackPressed;
+  final List<Widget>? actions;
 
   const ChatAppBar({
     super.key,
     required this.friend,
     required this.onBackPressed,
+    this.actions,
   });
 
   @override
@@ -68,14 +70,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.videocam, color: Colors.white),
-            onPressed: () {
-              // TODO: Implement video call
-            },
-          ),
-        ],
+        actions: actions,
       );
     }
 

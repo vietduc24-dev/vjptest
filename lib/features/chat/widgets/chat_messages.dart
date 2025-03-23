@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../services/api/friends/friends_load/list_friends.dart';
-import '../../../services/websocket/chatuser/chat_message.dart';
-import 'chat_message_item.dart';
+import '../../../../services/api/friends/friends_load/list_friends.dart';
+import '../../../../services/websocket/chatuser/chat_message.dart';
+import '../widgets/message_bubble.dart';
 
 class ChatMessages extends StatelessWidget {
   final List<ChatMessage> messages;
@@ -14,8 +14,8 @@ class ChatMessages extends StatelessWidget {
   final VoidCallback onScrollToBottom;
   final bool Function(ChatMessage) isTypingMessage;
   final bool isLoadingMore;
-  final VoidCallback onLoadMore;
   final bool hasMoreMessages;
+  final VoidCallback onLoadMore;
 
   const ChatMessages({
     super.key,
@@ -23,137 +23,101 @@ class ChatMessages extends StatelessWidget {
     required this.currentUserId,
     required this.friend,
     required this.isTyping,
-    required this.typingUserId,
+    this.typingUserId,
     required this.scrollController,
     required this.showScrollButton,
     required this.onScrollToBottom,
     required this.isTypingMessage,
     required this.isLoadingMore,
-    required this.onLoadMore,
     required this.hasMoreMessages,
+    required this.onLoadMore,
   });
+
+  bool _shouldTranslateMessage(int index, ChatMessage message) {
+    // Only translate messages from friend (not from current user)
+    if (message.senderId == currentUserId) return false;
+    
+    // Only translate the 3 most recent non-typing messages
+    int nonTypingMessageCount = 0;
+    for (int i = messages.length - 1; i >= 0 && nonTypingMessageCount < 3; i--) {
+      if (!isTypingMessage(messages[i])) {
+        nonTypingMessageCount++;
+        if (i == index) return true;
+      }
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final topPadding = mediaQuery.padding.top;
-
-    return SafeArea(
-      child: Stack(
-        children: [
-          NotificationListener<ScrollNotification>(
-            onNotification: (ScrollNotification scrollInfo) {
-              if (scrollInfo.metrics.pixels <= scrollInfo.metrics.minScrollExtent + 200 &&
-                  !isLoadingMore &&
-                  hasMoreMessages) {
+    return Stack(
+      children: [
+        NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollUpdateNotification) {
+              if (scrollController.position.pixels >= 
+                  scrollController.position.maxScrollExtent - 200) {
                 onLoadMore();
               }
-              return true;
+            }
+            return true;
+          },
+          child: ListView.builder(
+            controller: scrollController,
+            reverse: true,
+            padding: const EdgeInsets.only(bottom: 16),
+            itemCount: messages.length + (isLoadingMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (isLoadingMore && index == 0) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              final actualIndex = isLoadingMore ? index - 1 : index;
+              final message = messages[actualIndex];
+
+              if (isTypingMessage(message)) {
+                return const SizedBox.shrink();
+              }
+
+              return MessageBubble(
+                message: message,
+                isMe: message.senderId == currentUserId,
+                shouldTranslate: _shouldTranslateMessage(actualIndex, message),
+              );
             },
-            child: Column(
-              children: [
-                if (hasMoreMessages)
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    alignment: Alignment.center,
-                    child: isLoadingMore
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const SizedBox(height: 0),
-                  ),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    reverse: true,
-                    padding: EdgeInsets.only(
-                      left: 8,
-                      right: 8,
-                      top: 16 + topPadding,
-                      bottom: isTyping ? 60 : 16,
-                    ),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      final isMe = message.senderId == currentUserId;
-                      return ChatMessageItem(
-                        message: message,
-                        isMe: isMe,
-                      );
-                    },
-                  ),
-                ),
-              ],
+          ),
+        ),
+        if (showScrollButton)
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: FloatingActionButton(
+              mini: true,
+              onPressed: onScrollToBottom,
+              child: const Icon(Icons.arrow_downward),
             ),
           ),
-          if (showScrollButton)
-            Positioned(
-              right: 16,
-              top: 16 + topPadding,
-              child: FloatingActionButton(
-                mini: true,
-                backgroundColor: Colors.blue[600]?.withOpacity(0.9),
-                onPressed: onScrollToBottom,
-                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
-              ),
-            ),
-          if (isTyping && messages.isNotEmpty && 
-              !isTypingMessage(messages.last) &&
-              typingUserId != currentUserId)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(16, 8, 16, 8 + mediaQuery.padding.bottom),
-                color: Colors.white,
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 15,
-                      backgroundImage: friend.avatar != null
-                          ? NetworkImage(friend.avatar!)
-                          : null,
-                      backgroundColor: Colors.blue[300],
-                      child: friend.avatar == null
-                          ? Text(
-                              friend.username[0].toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'Typing...',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                  ],
+        if (isTyping && typingUserId != currentUserId)
+          Positioned(
+            left: 16,
+            bottom: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                '${friend.fullName} đang nhập...',
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 } 
