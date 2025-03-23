@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../services/websocket/chatuser/chat_message.dart';
 import '../../../../common/bloc_status.dart';
 import '../../repository/chat_repository.dart';
+import '../../../../services/translation/translation_preferences.dart';
+import '../../../../services/translation/message_translation_service.dart';
 import 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
@@ -16,12 +18,67 @@ class ChatCubit extends Cubit<ChatState> {
   bool _isClosed = false;
   int _currentPage = 1;
   bool _hasMore = true;
+  TranslationLanguage _currentLanguage = TranslationLanguage.none;
+  final Map<String, String> _translatedMessages = {};
 
   ChatCubit({
     required ChatRepository repository,
   }) : _chatRepository = repository,
        super(ChatInitial()) {
     initialize();
+    _loadTranslationPreference();
+  }
+
+  Future<void> _loadTranslationPreference() async {
+    _currentLanguage = await TranslationPreferences.getLanguage();
+    if (state is ChatConnected) {
+      final currentState = state as ChatConnected;
+      emit(currentState.copyWith(translationLanguage: _currentLanguage));
+    }
+  }
+
+  Future<void> setTranslationLanguage(TranslationLanguage language) async {
+    await TranslationPreferences.setLanguage(language);
+    _currentLanguage = language;
+    _translatedMessages.clear(); // Clear cached translations when language changes
+    
+    if (state is ChatConnected) {
+      final currentState = state as ChatConnected;
+      emit(currentState.copyWith(
+        translationLanguage: language,
+        translatedMessages: Map.from(_translatedMessages),
+      ));
+      
+      // Start translating messages with new language
+      await _translateMessages(currentState.messages);
+    }
+  }
+
+  Future<void> _translateMessages(List<ChatMessage> messages) async {
+    if (_currentLanguage == TranslationLanguage.none) return;
+    
+    for (var message in messages) {
+      if (message.senderId != _chatRepository.currentUserId && 
+          !_translatedMessages.containsKey(message.id)) {
+        try {
+          final translatedText = await MessageTranslationService.translateMessageIfNeeded(
+            message.content,
+          );
+          
+          if (translatedText != null) {
+            _translatedMessages[message.id] = translatedText;
+            if (state is ChatConnected) {
+              final currentState = state as ChatConnected;
+              emit(currentState.copyWith(
+                translatedMessages: Map.from(_translatedMessages),
+              ));
+            }
+          }
+        } catch (e) {
+          print('Error translating message: $e');
+        }
+      }
+    }
   }
 
   Future<void> initialize() async {
@@ -43,7 +100,12 @@ class ChatCubit extends Cubit<ChatState> {
         isTyping: false,
         hasMore: _hasMore,
         currentPage: _currentPage,
+        translationLanguage: _currentLanguage,
+        translatedMessages: _translatedMessages,
       ));
+
+      // Start translating initial messages
+      await _translateMessages(_messages);
 
       _messageSubscription = _chatRepository.messageStream.listen((message) {
         if (_isClosed || state.status == BlocStatus.failure) return;
@@ -51,13 +113,11 @@ class ChatCubit extends Cubit<ChatState> {
         if (state is ChatConnected) {
           final currentState = state as ChatConnected;
           _messages = [message, ...currentState.messages];
-          emit(ChatConnected(
+          emit(currentState.copyWith(
             messages: _messages,
-            isTyping: currentState.isTyping,
-            typingUserId: currentState.typingUserId,
-            hasMore: _hasMore,
-            currentPage: _currentPage,
           ));
+          // Translate new message if needed
+          _translateMessages([message]);
         }
       });
 

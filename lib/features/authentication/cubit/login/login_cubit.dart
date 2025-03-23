@@ -45,21 +45,15 @@ class LoginCubit extends Cubit<LoginState> {
   }
 
   Future<void> logout() async {
+    debugPrint('Starting logout process');
     try {
-      debugPrint('Starting logout process');
-      emit(state.copyWith(status: BlocStatus.loading));
-
       await _authRepository.logout();
-
       debugPrint('Logout successful');
       emit(const LoginState());
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('Logout error: $e');
-      debugPrint('Stack trace: $stackTrace');
-      emit(state.copyWith(
-        status: BlocStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      // Still clear the state even if there's an error
+      emit(const LoginState());
     }
   }
 }

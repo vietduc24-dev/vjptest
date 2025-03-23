@@ -5,6 +5,7 @@ import '../../../common/widgets/toast.dart';
 import '../../authentication/cubit/login/login_cubit.dart';
 import '../../authentication/cubit/login/login_state.dart';
 import '../../../common/widgets/page_wrapper.dart';
+import '../../../routes/app_router.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -13,7 +14,12 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return PageWrapper(
       canPop: false,
-      child: BlocBuilder<LoginCubit, LoginState>(
+      child: BlocConsumer<LoginCubit, LoginState>(
+        listener: (context, state) {
+          if (state.user == null) {
+            AppRouter.goToLogin(context);
+          }
+        },
         builder: (context, state) {
           final User? user = state.user;
           if (user == null) {
