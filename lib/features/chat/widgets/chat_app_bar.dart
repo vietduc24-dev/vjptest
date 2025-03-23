@@ -12,14 +12,11 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      color: Colors.blue[700],
-      child: AppBar(
-        backgroundColor: Colors.transparent,
+    Widget build(BuildContext context) {
+      return AppBar(
+        backgroundColor: Colors.blue[700],
         elevation: 0,
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: onBackPressed,
@@ -34,12 +31,12 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
               backgroundColor: Colors.blue[300],
               child: friend.avatar == null
                   ? Text(
-                      friend.username[0].toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    )
+                friend.username[0].toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              )
                   : null,
             ),
             const SizedBox(width: 12),
@@ -79,9 +76,8 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
           ),
         ],
-      ),
-    );
-  }
+      );
+    }
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);

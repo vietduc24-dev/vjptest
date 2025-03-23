@@ -9,6 +9,13 @@ class FriendsEndpoint {
         header: DefaultHeader.instance.addDefaultHeader(),
       );
 
+  // Search users
+  static EndpointType searchUsers(String query) => EndpointType(
+        path: BaseEndpoint.getFullUrl('/users/search?q=$query'),
+        httpMethod: HttpMethod.get,
+        header: DefaultHeader.instance.addDefaultHeader(),
+      );
+
   // Get friend requests
   static EndpointType getFriendRequests() => EndpointType(
         path: BaseEndpoint.getFullUrl('/friends/requests'),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../services/api/friends/friends_load/list_friends.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../cubit/friends/firends_cubit.dart';
 import '../../cubit/friends/firends_state.dart';
 import '../../widgets/friend_request_item.dart';
@@ -15,19 +16,24 @@ class FriendsListScreen extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Friends'),
+            title: const Text('Bạn bè'),
             actions: [
               IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () => context.pushNamed('search_users'),
+              ),
+              IconButton(
                 icon: const Icon(Icons.person_add),
-                onPressed: () {
-                  // TODO: Implement add friend dialog
-                },
+                onPressed: () => context.pushNamed('friend_requests'),
               ),
             ],
           ),
-          body: RefreshIndicator(
-            onRefresh: () => context.read<FriendsCubit>().loadFriends(refresh: true),
-            child: _buildBody(context, state),
+          body: SafeArea(
+            bottom: false,
+            child: RefreshIndicator(
+              onRefresh: () => context.read<FriendsCubit>().loadFriends(refresh: true),
+              child: _buildBody(context, state),
+            ),
           ),
         );
       },
@@ -35,6 +41,8 @@ class FriendsListScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, FriendsState state) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     if (state is FriendsInitial) {
       // Load friends when screen is first opened
       context.read<FriendsCubit>().loadFriends();
@@ -78,9 +86,9 @@ class FriendsListScreen extends StatelessWidget {
         child: CustomScrollView(
           slivers: [
             if (state.friendRequests.items.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                sliver: SliverToBoxAdapter(
                   child: Text(
                     'Friend Requests (${state.friendRequests.items.length})',
                     style: Theme.of(context).textTheme.titleLarge,
@@ -101,28 +109,31 @@ class FriendsListScreen extends StatelessWidget {
                   childCount: state.friendRequests.items.length,
                 ),
               ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+            SliverPadding(
+              padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+              sliver: SliverToBoxAdapter(
                 child: Text(
                   'Friends (${state.friends.items.length})',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
             ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final friend = state.friends.items[index];
-                  return FriendItem(friend: friend);
-                },
-                childCount: state.friends.items.length,
+            SliverPadding(
+              padding: EdgeInsets.only(bottom: bottomPadding + 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final friend = state.friends.items[index];
+                    return FriendItem(friend: friend);
+                  },
+                  childCount: state.friends.items.length,
+                ),
               ),
             ),
             if (state is FriendsLoading && (state as FriendsLoading).isLoadingMore)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
+              SliverPadding(
+                padding: EdgeInsets.only(bottom: bottomPadding + 16),
+                sliver: const SliverToBoxAdapter(
                   child: Center(child: CircularProgressIndicator()),
                 ),
               ),

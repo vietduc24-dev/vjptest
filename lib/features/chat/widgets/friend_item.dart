@@ -21,7 +21,6 @@ class FriendItem extends StatelessWidget {
       // Handle error - user not logged in
       return;
     }
-
     AppRouter.goToChat(context, friend, currentUserId);
   }
 

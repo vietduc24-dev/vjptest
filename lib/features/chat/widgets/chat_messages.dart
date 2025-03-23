@@ -35,123 +35,125 @@ class ChatMessages extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        NotificationListener<ScrollNotification>(
-          onNotification: (ScrollNotification scrollInfo) {
-            if (scrollInfo.metrics.pixels <= scrollInfo.metrics.minScrollExtent + 200 &&
-                !isLoadingMore &&
-                hasMoreMessages) {
-              onLoadMore();
-            }
-            return true;
-          },
-          child: Column(
-            children: [
-              if (hasMoreMessages)
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  alignment: Alignment.center,
-                  child: isLoadingMore
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const SizedBox(height: 0),
-                ),
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  reverse: true,
-                  padding: EdgeInsets.only(
-                    left: 8,
-                    right: 8,
-                    top: 16,
-                    bottom: isTyping ? 60 : 16,
-                  ),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMe = message.senderId == currentUserId;
-                    return ChatMessageItem(
-                      message: message,
-                      isMe: isMe,
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (showScrollButton)
-          Positioned(
-            right: 16,
-            top: 16,
-            child: FloatingActionButton(
-              mini: true,
-              backgroundColor: Colors.blue[600]?.withOpacity(0.9),
-              onPressed: onScrollToBottom,
-              child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
-            ),
-          ),
-        if (isTyping && messages.isNotEmpty && 
-            !isTypingMessage(messages.last) &&
-            typingUserId != currentUserId)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 16,
-              ),
-              color: Colors.white,
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 15,
-                    backgroundImage: friend.avatar != null
-                        ? NetworkImage(friend.avatar!)
-                        : null,
-                    backgroundColor: Colors.blue[300],
-                    child: friend.avatar == null
-                        ? Text(
-                            friend.username[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+    final mediaQuery = MediaQuery.of(context);
+    final topPadding = mediaQuery.padding.top;
+
+    return SafeArea(
+      child: Stack(
+        children: [
+          NotificationListener<ScrollNotification>(
+            onNotification: (ScrollNotification scrollInfo) {
+              if (scrollInfo.metrics.pixels <= scrollInfo.metrics.minScrollExtent + 200 &&
+                  !isLoadingMore &&
+                  hasMoreMessages) {
+                onLoadMore();
+              }
+              return true;
+            },
+            child: Column(
+              children: [
+                if (hasMoreMessages)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    alignment: Alignment.center,
+                    child: isLoadingMore
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
                             ),
                           )
-                        : null,
+                        : const SizedBox(height: 0),
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    reverse: true,
+                    padding: EdgeInsets.only(
+                      left: 8,
+                      right: 8,
+                      top: 16 + topPadding,
+                      bottom: isTyping ? 60 : 16,
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Typing...',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final message = messages[index];
+                      final isMe = message.senderId == currentUserId;
+                      return ChatMessageItem(
+                        message: message,
+                        isMe: isMe,
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-      ],
+          if (showScrollButton)
+            Positioned(
+              right: 16,
+              top: 16 + topPadding,
+              child: FloatingActionButton(
+                mini: true,
+                backgroundColor: Colors.blue[600]?.withOpacity(0.9),
+                onPressed: onScrollToBottom,
+                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
+              ),
+            ),
+          if (isTyping && messages.isNotEmpty && 
+              !isTypingMessage(messages.last) &&
+              typingUserId != currentUserId)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 8 + mediaQuery.padding.bottom),
+                color: Colors.white,
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 15,
+                      backgroundImage: friend.avatar != null
+                          ? NetworkImage(friend.avatar!)
+                          : null,
+                      backgroundColor: Colors.blue[300],
+                      child: friend.avatar == null
+                          ? Text(
+                              friend.username[0].toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'Typing...',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 } 

@@ -51,7 +51,12 @@ class FriendsService {
       // If we don't have cached data or it's the first page, fetch from API
       if (_cachedRequests.isEmpty || page == 1) {
         final endpoint = FriendsEndpoint.getFriendRequests();
-        final response = await _apiProvider.get(endpoint.path!);
+        debugPrint('🔍 [GET Friend Requests] Making request...');
+        final response = await _apiProvider.get(endpoint.path!, params: {
+          'page': page.toString(),
+          'pageSize': pageSize.toString(),
+        });
+        debugPrint('🔍 [GET Friend Requests] Response received');
 
         debugPrint('getFriendRequests response type: ${response.runtimeType}');
         debugPrint('getFriendRequests response: $response');
@@ -65,8 +70,29 @@ class FriendsService {
       
       return PaginatedList.fromList(_cachedRequests, page: page, pageSize: pageSize);
     } catch (e) {
-      debugPrint('getFriendRequests error: $e');
-      throw Exception('Failed to load friend requests: $e');
+      debugPrint('❌ getFriendRequests error: $e');
+      rethrow;
+    }
+  }
+
+  // Search users
+  Future<List<Friend>> searchUsers(String query) async {
+    try {
+      final endpoint = FriendsEndpoint.searchUsers(query);
+      final response = await _apiProvider.get(endpoint.path!);
+      
+      debugPrint('searchUsers response type: ${response.runtimeType}');
+      debugPrint('searchUsers response: $response');
+      
+      if (response is List) {
+        return _parseFriendsList(response);
+      } else if (response is BaseResponse && response.success) {
+        return _parseFriendsList(response.data);
+      }
+      return [];
+    } catch (e) {
+      debugPrint('searchUsers error: $e');
+      throw Exception('Failed to search users: $e');
     }
   }
 
@@ -82,12 +108,14 @@ class FriendsService {
       final endpoint = FriendsEndpoint.sendFriendRequest();
       final response = await _apiProvider.post(
         endpoint.path!,
-        data: {'username': toUsername},
+        data: {
+          'to': toUsername,
+        },
       );
-      clearCache(); // Clear cache after sending request
+
       return response;
     } catch (e) {
-      throw Exception('Failed to send friend request: $e');
+      rethrow;
     }
   }
 

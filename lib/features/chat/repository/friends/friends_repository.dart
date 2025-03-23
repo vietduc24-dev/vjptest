@@ -18,6 +18,10 @@ class FriendsRepository {
     return await _friendsService.getFriendRequests(page: page, pageSize: pageSize);
   }
 
+  Future<List<Friend>> searchUsers(String query) async {
+    return await _friendsService.searchUsers(query);
+  }
+
   Future<BaseResponse> sendFriendRequest(String toUsername) async {
     return await _friendsService.sendFriendRequest(toUsername);
   }
