@@ -3,6 +3,7 @@ import '../../../services/api/authentication/auth_service.dart';
 import '../../../services/api/authentication/vjpload/sign_in_vjpload.dart';
 import '../../../services/api/authentication/vjpload/sign_up_vjpload.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthenticationRepository {
   final AuthService _authService;
@@ -78,16 +79,13 @@ class AuthenticationRepository {
 
   Future<void> logout() async {
     try {
-      final response = await _authService.logout();
-
-      if (!response.success) {
-        throw Exception(response.message ?? 'Failed to logout');
-      }
-
-      // Xóa token
+      // Xóa token khỏi secure storage
       await _storage.delete(key: 'auth_token');
+      debugPrint('Token deleted, local logout completed');
     } catch (e) {
-      throw Exception('Failed to logout: $e');
+      debugPrint('Error during logout: $e');
+      // Vẫn throw để LoginCubit biết có lỗi
+      throw Exception('Failed to clear local data: $e');
     }
   }
 
