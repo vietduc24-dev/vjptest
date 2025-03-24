@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../services/api/friends/friends_load/list_friends.dart';
 import '../../../../services/websocket/chatuser/chat_message.dart';
-import '../widgets/message_bubble.dart';
+import 'chat_message_item.dart';
 
 class ChatMessages extends StatelessWidget {
   final List<ChatMessage> messages;
@@ -84,7 +84,7 @@ class ChatMessages extends StatelessWidget {
                 return const SizedBox.shrink();
               }
 
-              return MessageBubble(
+              return ChatMessageItem(
                 message: message,
                 isMe: message.senderId == currentUserId,
                 shouldTranslate: _shouldTranslateMessage(actualIndex, message),

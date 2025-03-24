@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../../../../services/api/groups/models/group.dart';
 import '../../cubit/groups/groups_cubit.dart';
 import '../../cubit/groups/groups_state.dart';
@@ -24,6 +25,7 @@ class GroupChatScreen extends StatefulWidget {
 class _GroupChatScreenState extends State<GroupChatScreen> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
+  final _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -38,10 +40,28 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     super.dispose();
   }
 
+  Future<void> _handleImageSelection() async {
+    try {
+      final pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+      );
+
+      if (pickedFile != null) {
+        final imageFile = File(pickedFile.path);
+        context.read<GroupsCubit>().sendMessage('', imageFile: imageFile);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể chọn ảnh: $e')),
+      );
+    }
+  }
+
   void _handleSendMessage(String message, {File? imageFile}) {
-    if (message.isNotEmpty) {
+    if (message.isNotEmpty || imageFile != null) {
       print('Sending message as user: ${widget.currentUserId}');
-      context.read<GroupsCubit>().sendMessage(message);
+      context.read<GroupsCubit>().sendMessage(message, imageFile: imageFile);
       _textController.clear();
     }
   }

@@ -5,6 +5,7 @@ import 'group_endpoints.dart';
 import '../../base/base_reponse.dart';
 import '../../base/base_enpoint.dart';
 import '../../../services/websocket/chatgroup/group_message.dart';
+import 'dart:io';
 
 class GroupService {
   final ApiProvider _apiProvider;
@@ -142,6 +143,31 @@ class GroupService {
       };
     } catch (e) {
       throw Exception('Failed to load group messages: $e');
+    }
+  }
+
+  Future<String> uploadImage(File imageFile) async {
+    try {
+      final endpoint = GroupEndpoints.uploadImage();
+      
+      // Create form data
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+      });
+
+      final response = await _apiProvider.post(
+        BaseEndpoint.getFullUrl(endpoint.path ?? ''),
+        data: formData,
+      );
+
+      final baseResponse = BaseResponse.fromJson(response.data);
+      return baseResponse.data['imageUrl'] as String;
+    } catch (e) {
+      print('Error in uploadImage: $e');
+      rethrow;
     }
   }
 } 

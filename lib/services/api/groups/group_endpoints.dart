@@ -51,4 +51,20 @@ class GroupEndpoints {
       header: DefaultHeader.instance.addDefaultHeader(),
     );
   }
+
+  static EndpointType getGroupMessages(String groupId) {
+    return EndpointType(
+      path: '$_basePath/$groupId/messages',
+      httpMethod: HttpMethod.get,
+      header: DefaultHeader.instance.addDefaultHeader(),
+    );
+  }
+
+  static EndpointType uploadImage() {
+    return EndpointType(
+      path: '$_basePath/upload-image',
+      httpMethod: HttpMethod.post,
+      header: DefaultHeader.instance.addDefaultHeader(),
+    );
+  }
 } 

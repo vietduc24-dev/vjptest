@@ -154,14 +154,19 @@ class GroupsCubit extends Cubit<GroupsState> {
   }
 
   void _handleNewMessage(GroupMessage message) {
-    print('Received new message:');
+    print('GroupsCubit handling new message:');
     print('- sender: ${message.sender}');
     print('- content: ${message.content}');
+    print('- attachmentUrl: ${message.attachmentUrl}');
+    print('- attachmentType: ${message.attachmentType}');
+
     final updatedMessages = [message, ...state.messages];
     emit(state.copyWith(
       messages: updatedMessages,
       status: GroupsStatus.chatting,
     ));
+
+    print('GroupsCubit state updated, messages count: ${state.messages.length}');
   }
 
   void _handleTypingStatus(Map<String, dynamic> status) {
@@ -180,7 +185,7 @@ class GroupsCubit extends Cubit<GroupsState> {
         throw Exception('Chat service not initialized');
       }
       print('Sending message through socket service');
-      _groupRepository!.sendMessage(content);
+      _groupRepository!.sendMessage(content, imageFile: imageFile);
     } catch (e) {
       emit(state.copyWith(
         status: GroupsStatus.error,

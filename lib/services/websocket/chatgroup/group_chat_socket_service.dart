@@ -58,43 +58,36 @@ class GroupChatSocketService {
 
   void _handleMessage(dynamic data) {
     try {
-      final message = jsonDecode(data);
-      print('📩 Received message: $message'); // Debug log
-
-      if (message['type'] == 'ws_auth_success') {
+      print('WebSocket received raw data: $data');
+      final Map<String, dynamic> messageData = jsonDecode(data as String);
+      print('WebSocket decoded message data: $messageData');
+      
+      if (messageData['type'] == 'ws_auth_success') {
         _isAuthenticated = true;
         _authCompleter.complete();
         print('✅ Client authenticated: $userId');
-      } else if (message['type'] == 'group_message') {
-        if (message['group_id'] == groupId) {
-          try {
-            final groupMessage = GroupMessage.fromJson(message);
-            _messageController.add(groupMessage);
-          } catch (e) {
-            print('❌ Error parsing group message: $e');
-          }
+      } else if (messageData['type'] == 'message' || messageData['type'] == 'group_message') {
+        if (messageData['group_id'] == groupId) {
+          final message = GroupMessage.fromJson(messageData);
+          print('WebSocket created GroupMessage: $message');
+          _messageController.add(message);
         }
-      } else if (message['type'] == 'typing_status') {
-        _typingController.add({
-          'userId': message['sender'],
-          'isTyping': message['isTyping'],
-        });
-      } else if (message['type'] == 'error') {
-        print('❌ WebSocket error: ${message['message']}');
+      } else if (messageData['type'] == 'typing_status') {
+        _typingController.add(messageData);
+      } else if (messageData['type'] == 'error') {
+        print('❌ WebSocket error: ${messageData['message']}');
         if (!_isAuthenticated) {
-          _authCompleter.completeError(message['message']);
+          _authCompleter.completeError(messageData['message']);
         }
       }
     } catch (e) {
-      print('❌ Error handling message: $e');
+      print('Error handling WebSocket message: $e');
     }
   }
 
   // Đợi auth hoàn tất trước khi gửi message
-  Future<void> sendMessage(String content, {String? attachmentUrl, String? attachmentType}) async {
+  void sendMessage(String content, {String? attachmentUrl, String? attachmentType}) {
     try {
-      await _authCompleter.future;
-      
       if (!_isAuthenticated) {
         throw Exception('Not authenticated');
       }
@@ -104,9 +97,15 @@ class GroupChatSocketService {
         'group_id': groupId,
         'sender': userId,
         'message': content,
-        'attachment_url': attachmentUrl,
-        'attachment_type': attachmentType,
+        'timestamp': DateTime.now().toIso8601String(),
       };
+
+      if (attachmentUrl != null && attachmentType != null) {
+        message['attachmentUrl'] = attachmentUrl;
+        message['attachmentType'] = attachmentType;
+      }
+
+      print('Sending message: $message');
       _channel.sink.add(jsonEncode(message));
     } catch (e) {
       print('Error sending message: $e');

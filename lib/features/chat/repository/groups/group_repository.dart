@@ -5,6 +5,7 @@ import '../../../../services/websocket/chatgroup/group_message.dart';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import '../../../../services/api/cloudinary/cloudinary_service.dart';
 
 class GroupRepository {
   final GroupService _groupService;
@@ -109,8 +110,25 @@ class GroupRepository {
     if (_socketService == null) {
       throw Exception('Chat service not initialized');
     }
-    // TODO: Handle image upload if needed
-    _socketService!.sendMessage(content);
+    
+    if (imageFile != null) {
+      // Upload image to Cloudinary
+      CloudinaryService.instance.uploadImage(imageFile).then((imageUrl) {
+        if (imageUrl != null) {
+          // Send message with image attachment
+          _socketService!.sendMessage(
+            content,
+            attachmentUrl: imageUrl,
+            attachmentType: 'image/${imageFile.path.split('.').last}',
+          );
+        }
+      }).catchError((error) {
+        throw Exception('Failed to upload image: $error');
+      });
+    } else {
+      // Send text message only
+      _socketService!.sendMessage(content);
+    }
   }
 
   void sendTypingStatus(bool isTyping) {

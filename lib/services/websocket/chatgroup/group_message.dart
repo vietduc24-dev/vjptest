@@ -22,6 +22,17 @@ class GroupMessage {
   });
 
   factory GroupMessage.fromJson(Map<String, dynamic> json) {
+    print('GroupMessage.fromJson received data:');
+    print('- id: ${json['id']}');
+    print('- group_id: ${json['group_id']}');
+    print('- sender: ${json['sender']}');
+    print('- sender_name: ${json['sender_name']}');
+    print('- message: ${json['message']}');
+    print('- attachmentUrl: ${json['attachmentUrl']}');
+    print('- attachmentType: ${json['attachmentType']}');
+    print('- messageType: ${json['messageType']}');
+    print('- timestamp: ${json['timestamp']}');
+
     return GroupMessage(
       id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       groupId: json['group_id'] ?? '',
@@ -32,8 +43,8 @@ class GroupMessage {
       timestamp: json['timestamp'] != null 
         ? DateTime.parse(json['timestamp'])
         : DateTime.now(),
-      attachmentUrl: json['attachment_url'],
-      attachmentType: json['attachment_type'],
+      attachmentUrl: json['attachmentUrl'],
+      attachmentType: json['attachmentType'],
     );
   }
 
