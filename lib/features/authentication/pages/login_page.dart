@@ -4,7 +4,12 @@ import '../../../routes/app_router.dart';
 import '../../../common/widgets/toast.dart';
 import '../cubit/login/login_cubit.dart';
 import '../cubit/login/login_state.dart';
-import '../../../../common/bloc_status.dart';
+import '../../../common/bloc_status.dart';
+import '../../../common/colors.dart';
+import '../../../common/texts/format_language_login_register.dart';
+import '../cubit/language/language_cubit.dart';
+import '../widgets/auth_widgets.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -14,12 +19,12 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -27,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<LoginCubit>().login(
-            username: _usernameController.text,
+            username: _emailController.text,
             password: _passwordController.text,
           );
     }
@@ -39,108 +44,163 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-      ),
-      body: BlocConsumer<LoginCubit, LoginState>(
-        listener: (context, state) {
-          if (state.status == BlocStatus.failure) {
-            Toast.show(
-              context,
-              state.errorMessage ?? 'An error occurred',
-              type: ToastType.error,
-            );
-          } else if (state.status == BlocStatus.success) {
-            Toast.show(
-              context,
-              'Login successful',
-              type: ToastType.success,
-            );
-            AppRouter.goToHome(context);
-          }
-        },
-        builder: (context, state) {
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Welcome Back',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+    return BlocProvider(
+      create: (context) => LanguageCubit(),
+      child: Scaffold(
+        body: BlocConsumer<LoginCubit, LoginState>(
+          listener: (context, state) {
+            if (state.status == BlocStatus.failure) {
+              Toast.show(
+                context,
+                state.errorMessage ?? 'An error occurred',
+                type: ToastType.error,
+              );
+            } else if (state.status == BlocStatus.success) {
+              Toast.show(
+                context,
+                'Login successful',
+                type: ToastType.success,
+              );
+              AppRouter.goToHome(context);
+            }
+          },
+          builder: (context, state) {
+            return BlocBuilder<LanguageCubit, String>(
+              builder: (context, language) {
+                return SingleChildScrollView(
+                  child: Container(
+                    height: MediaQuery.of(context).size.height,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [UIColors.white, UIColors.whiteSmoke],
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 48),
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person),
-                      ),
-                      keyboardType: TextInputType.text,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your username';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) =>
-                          context.read<LoginCubit>().updateUsername(value),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
-                      ),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed:
-                          state.status == BlocStatus.loading ? null : _handleLogin,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: state.status == BlocStatus.loading
-                          ? const CircularProgressIndicator()
-                          : const Text(
-                              'Login',
-                              style: TextStyle(fontSize: 16),
+                    child: Column(
+                      children: [
+                        LanguageSelector(
+                          currentLanguage: language,
+                          onLanguageChanged: (lang) => context
+                              .read<LanguageCubit>()
+                              .changeLanguage(lang),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 40),
+                                  Text(
+                                    FormatLanguage.getLabel(
+                                        language, 'loginTitle'),
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: UIColors.boldText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    FormatLanguage.getLabel(
+                                        language, 'loginSubtitle'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: UIColors.grayText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 40),
+                                  AuthTextField(
+                                    controller: _emailController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'email'),
+                                    keyboardType: TextInputType.emailAddress,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return FormatLanguage.getLabel(
+                                            language, 'emailRequired');
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+                                  AuthTextField(
+                                    controller: _passwordController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'password'),
+                                    obscureText: true,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return FormatLanguage.getLabel(
+                                            language, 'passwordRequired');
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: state.status ==
+                                              BlocStatus.loading
+                                          ? null
+                                          : _handleLogin,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: UIColors.redLight,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      child: state.status == BlocStatus.loading
+                                          ? const SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(Colors.white),
+                                              ),
+                                            )
+                                          : Text(
+                                              FormatLanguage.getLabel(
+                                                  language, 'loginButton'),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                          ),
+                        ),
+                        AuthBottomContainer(
+                          welcomeText: FormatLanguage.getLabel(language, 'welcome'),
+                          switchText: FormatLanguage.getLabel(
+                              language, 'switchToRegister'),
+                          buttonText: FormatLanguage.getLabel(
+                              language, 'registerButton'),
+                          onButtonPressed: _navigateToRegister,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: _navigateToRegister,
-                      child: const Text('Don\'t have an account? Register'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
-
 }

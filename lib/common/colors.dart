@@ -53,6 +53,10 @@ class UIColors {
   static const Color succeed = Color(0xFFC6EDE1);
   static const Color failed = Color(0xFFEDC6C6);
 
+  static const Color redLight = Color(0xFFFF4B6A);
+  static const Color redDark = Color(0xFFFF3557);
+  static const List<Color> redGradient = [redLight, redDark];
+
   static const List<Color> primaryGradient = [
     Color(0xff4BE3C9),
     Color(0xff05DDFC),
