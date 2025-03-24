@@ -4,6 +4,10 @@ import '../../../routes/app_router.dart';
 import '../../../common/widgets/toast.dart';
 import '../cubit/register/register_cubit.dart';
 import '../cubit/register/register_state.dart';
+import '../../../common/colors.dart';
+import '../../../common/texts/format_language_login_register.dart';
+import '../cubit/language/language_cubit.dart';
+import '../widgets/auth_widgets.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -62,169 +66,206 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-      ),
-      body: BlocConsumer<RegisterCubit, RegisterState>(
-        listener: (context, state) {
-          if (state.status == RegisterStatus.error) {
-            Toast.show(
-              context,
-              state.errorMessage ?? 'An error occurred',
-              type: ToastType.error,
-            );
-          } else if (state.status == RegisterStatus.success) {
-            Toast.show(
-              context,
-              'Registration successful',
-              type: ToastType.success,
-            );
-            AppRouter.goToLogin(context);
-          }
-        },
-        builder: (context, state) {
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+    return BlocProvider(
+      create: (context) => LanguageCubit(),
+      child: Scaffold(
+        body: BlocConsumer<RegisterCubit, RegisterState>(
+          listener: (context, state) {
+            if (state.status == RegisterStatus.error) {
+              Toast.show(
+                context,
+                state.errorMessage ?? 'An error occurred',
+                type: ToastType.error,
+              );
+            } else if (state.status == RegisterStatus.success) {
+              Toast.show(
+                context,
+                'Registration successful',
+                type: ToastType.success,
+              );
+              AppRouter.goToLogin(context);
+            }
+          },
+          builder: (context, state) {
+            return BlocBuilder<LanguageCubit, String>(
+              builder: (context, language) {
+                return SingleChildScrollView(
+                  child: Container(
+                    height: MediaQuery.of(context).size.height,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [UIColors.white, UIColors.whiteSmoke],
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 48),
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your username';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) =>
-                          context.read<RegisterCubit>().updateUsername(value),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
-                      ),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _fullNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your full name';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) =>
-                          context.read<RegisterCubit>().updateFullName(value),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _companyNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Company Name',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.business),
-                      ),
-                      onChanged: (value) =>
-                          context.read<RegisterCubit>().updateCompanyName(value),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.phone),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      onChanged: (value) =>
-                          context.read<RegisterCubit>().updatePhone(value),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _nationalityController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nationality',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.flag),
-                      ),
-                      onChanged: (value) =>
-                          context.read<RegisterCubit>().updateNationality(value),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _packageTypeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Package Type',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.card_membership),
-                      ),
-                      onChanged: (value) =>
-                          context.read<RegisterCubit>().updatePackageType(value),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: state.status == RegisterStatus.loading
-                          ? null
-                          : _handleRegister,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: state.status == RegisterStatus.loading
-                          ? const CircularProgressIndicator()
-                          : const Text(
-                              'Register',
-                              style: TextStyle(fontSize: 16),
+                    child: Column(
+                      children: [
+                        LanguageSelector(
+                          currentLanguage: language,
+                          onLanguageChanged: (lang) => context
+                              .read<LanguageCubit>()
+                              .changeLanguage(lang),
+                        ),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 40),
+                                  Text(
+                                    FormatLanguage.getLabel(
+                                        language, 'registerTitle'),
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: UIColors.boldText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    FormatLanguage.getLabel(
+                                        language, 'registerSubtitle'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: UIColors.grayText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 40),
+                                  AuthTextField(
+                                    controller: _usernameController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'email'),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return FormatLanguage.getLabel(
+                                            language, 'emailRequired');
+                                      }
+                                      return null;
+                                    },
+                                    keyboardType: TextInputType.emailAddress,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  AuthTextField(
+                                    controller: _passwordController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'password'),
+                                    obscureText: true,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return FormatLanguage.getLabel(
+                                            language, 'passwordRequired');
+                                      }
+                                      if (value.length < 6) {
+                                        return FormatLanguage.getLabel(
+                                            language, 'passwordTooShort');
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+                                  AuthTextField(
+                                    controller: _fullNameController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'fullName'),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return FormatLanguage.getLabel(
+                                            language, 'fillAllFields');
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+                                  AuthTextField(
+                                    controller: _companyNameController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'company'),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  AuthTextField(
+                                    controller: _phoneController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'phone'),
+                                    keyboardType: TextInputType.phone,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  AuthTextField(
+                                    controller: _nationalityController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'entity'),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  AuthTextField(
+                                    controller: _packageTypeController,
+                                    label: FormatLanguage.getLabel(
+                                        language, 'package'),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: state.status ==
+                                              RegisterStatus.loading
+                                          ? null
+                                          : _handleRegister,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: UIColors.redLight,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      child: state.status ==
+                                              RegisterStatus.loading
+                                          ? const SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(Colors.white),
+                                              ),
+                                            )
+                                          : Text(
+                                              FormatLanguage.getLabel(
+                                                  language,
+                                                  'registerButton'),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                          ),
+                        ),
+                        AuthBottomContainer(
+                          welcomeText: FormatLanguage.getLabel(language, 'welcome'),
+                          switchText: FormatLanguage.getLabel(
+                              language, 'switchToLogin'),
+                          buttonText: FormatLanguage.getLabel(
+                              language, 'loginButton'),
+                          onButtonPressed: _navigateToLogin,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: _navigateToLogin,
-                      child: const Text('Already have an account? Login'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

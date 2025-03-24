@@ -171,23 +171,10 @@ class FriendsCubit extends Cubit<FriendsState> {
   }
 
   Future<void> searchUsers(String query) async {
+    emit(FriendsLoading());
     try {
-      emit(FriendsLoading(isFirstLoad: false));
       final results = await _friendsRepository.searchUsers(query);
-      final currentState = state;
-      if (currentState is FriendsLoaded) {
-        emit(FriendsLoaded(
-          friends: currentState.friends,
-          friendRequests: currentState.friendRequests,
-          searchResults: results,
-        ));
-      } else {
-        emit(FriendsLoaded(
-          friends: PaginatedList.empty(),
-          friendRequests: PaginatedList.empty(),
-          searchResults: results,
-        ));
-      }
+      emit(SearchResultsLoaded(results));
     } catch (e) {
       emit(FriendsError(e.toString()));
     }
