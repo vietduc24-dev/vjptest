@@ -147,4 +147,12 @@ class GroupRepository {
       throw Exception('Failed to load group messages: $e');
     }
   }
+
+  void revokeMessage(String messageId) {
+    if (_socketService == null) {
+      throw Exception('Chat service not initialized');
+    }
+    print('Revoking message through API: $messageId');
+    _groupService.revokeMessage(messageId);
+  }
 } 

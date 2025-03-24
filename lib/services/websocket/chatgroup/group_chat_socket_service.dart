@@ -66,7 +66,7 @@ class GroupChatSocketService {
         _isAuthenticated = true;
         _authCompleter.complete();
         print('✅ Client authenticated: $userId');
-      } else if (messageData['type'] == 'message' || messageData['type'] == 'group_message') {
+      } else if (messageData['type'] == 'message' || messageData['type'] == 'group_message' || messageData['type'] == 'group_message_revoked') {
         if (messageData['group_id'] == groupId) {
           final message = GroupMessage.fromJson(messageData);
           print('WebSocket created GroupMessage: $message');
@@ -131,6 +131,28 @@ class GroupChatSocketService {
       _channel.sink.add(jsonEncode(status));
     } catch (e) {
       print('Error sending typing status: $e');
+      rethrow;
+    }
+  }
+
+  void revokeMessage(String messageId) {
+    try {
+      if (!_isAuthenticated) {
+        throw Exception('Not authenticated');
+      }
+
+      final message = {
+        'type': 'revoke_message',
+        'group_id': groupId,
+        'sender': userId,
+        'message_id': messageId,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+
+      print('Sending revoke message: $message');
+      _channel.sink.add(jsonEncode(message));
+    } catch (e) {
+      print('Error revoking message: $e');
       rethrow;
     }
   }

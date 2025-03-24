@@ -159,12 +159,28 @@ class GroupsCubit extends Cubit<GroupsState> {
     print('- content: ${message.content}');
     print('- attachmentUrl: ${message.attachmentUrl}');
     print('- attachmentType: ${message.attachmentType}');
+    print('- isRevoked: ${message.isRevoked}');
 
-    final updatedMessages = [message, ...state.messages];
-    emit(state.copyWith(
-      messages: updatedMessages,
-      status: GroupsStatus.chatting,
-    ));
+    if (message.isRevoked) {
+      // Tìm và cập nhật tin nhắn đã bị thu hồi
+      final updatedMessages = state.messages.map((m) {
+        if (m.id == message.id) {
+          return message;
+        }
+        return m;
+      }).toList();
+
+      emit(state.copyWith(
+        messages: updatedMessages,
+        status: GroupsStatus.chatting,
+      ));
+    } else {
+      final updatedMessages = [message, ...state.messages];
+      emit(state.copyWith(
+        messages: updatedMessages,
+        status: GroupsStatus.chatting,
+      ));
+    }
 
     print('GroupsCubit state updated, messages count: ${state.messages.length}');
   }
@@ -244,6 +260,21 @@ class GroupsCubit extends Cubit<GroupsState> {
         status: GroupsStatus.error,
         errorMessage: e.toString(),
         isLoadingMessages: false,
+      ));
+    }
+  }
+
+  void revokeMessage(String messageId) {
+    try {
+      if (_groupRepository == null) {
+        throw Exception('Chat service not initialized');
+      }
+      print('Revoking message: $messageId');
+      _groupRepository!.revokeMessage(messageId);
+    } catch (e) {
+      emit(state.copyWith(
+        status: GroupsStatus.error,
+        errorMessage: e.toString(),
       ));
     }
   }
