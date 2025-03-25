@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../../../services/api/groups/models/group.dart';
+import '../../../../services/websocket/chatgroup/group_message.dart';
 import '../../cubit/groups/groups_cubit.dart';
 import '../../cubit/groups/groups_state.dart';
 import '../../widgets/chat_input.dart';
@@ -26,11 +27,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   final _imagePicker = ImagePicker();
+  late final GroupsCubit _groupsCubit;
 
   @override
   void initState() {
     super.initState();
-    context.read<GroupsCubit>().loadGroupMessages(widget.group.id);
+    _groupsCubit = context.read<GroupsCubit>();
+    _groupsCubit.loadGroupMessages(widget.group.id);
   }
 
   @override
@@ -38,6 +41,45 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _showRevokeDialog(BuildContext context, GroupMessage message) {
+    print('Opening revoke dialog for message:');
+    print('- Message ID: ${message.id}');
+    print('- Message Content: ${message.content}');
+    print('- Message Sender: ${message.sender}');
+    print('- Current User: ${widget.currentUserId}');
+    print('- Is Revoked: ${message.isRevoked}');
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Thu hồi tin nhắn'),
+        content: const Text('Bạn có chắc chắn muốn thu hồi tin nhắn này không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () {
+              print('Attempting to revoke message:');
+              print('- Message ID: ${message.id}');
+              print('- Current User: ${widget.currentUserId}');
+              print('- GroupsCubit state before revoke:');
+              print('- Messages count: ${_groupsCubit.state.messages.length}');
+              print('- Status: ${_groupsCubit.state.status}');
+              
+              _groupsCubit.revokeMessage(message.id);
+              
+              print('Revoke message command sent');
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('Thu hồi'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleImageSelection() async {
@@ -49,7 +91,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
       if (pickedFile != null) {
         final imageFile = File(pickedFile.path);
-        context.read<GroupsCubit>().sendMessage('', imageFile: imageFile);
+        _groupsCubit.sendMessage('', imageFile: imageFile);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -61,13 +103,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   void _handleSendMessage(String message, {File? imageFile}) {
     if (message.isNotEmpty || imageFile != null) {
       print('Sending message as user: ${widget.currentUserId}');
-      context.read<GroupsCubit>().sendMessage(message, imageFile: imageFile);
+      _groupsCubit.sendMessage(message, imageFile: imageFile);
       _textController.clear();
     }
   }
 
   void _handleTypingChanged(String text) {
-    context.read<GroupsCubit>().updateTypingStatus(text.isNotEmpty);
+    _groupsCubit.updateTypingStatus(text.isNotEmpty);
   }
 
   @override
@@ -97,6 +139,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         ],
       ),
       body: BlocBuilder<GroupsCubit, GroupsState>(
+        bloc: _groupsCubit,
         builder: (context, state) {
           return Column(
             children: [
@@ -114,6 +157,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     return GroupMessageBubble(
                       message: message,
                       isMe: message.sender == widget.currentUserId,
+                      onRevoke: (message) => _showRevokeDialog(context, message),
                     );
                   },
                 ),

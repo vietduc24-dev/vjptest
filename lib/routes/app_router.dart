@@ -304,9 +304,11 @@ final goRouter = GoRouter(
                             wsUrl: WebSocketConfig.wsUrl,
                             currentUserId: currentUserId,
                           ),
-                        child: GroupChatScreen(
-                          group: group,
-                          currentUserId: currentUserId,
+                        child: Builder(
+                          builder: (context) => GroupChatScreen(
+                            group: group,
+                            currentUserId: currentUserId,
+                          ),
                         ),
                       ),
                     );

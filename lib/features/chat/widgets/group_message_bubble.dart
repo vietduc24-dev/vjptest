@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../services/websocket/chatgroup/group_message.dart';
+import '../cubit/groups/groups_cubit.dart';
 
 class GroupMessageBubble extends StatelessWidget {
   final GroupMessage message;
   final bool isMe;
+  final Function(GroupMessage)? onRevoke;
 
   const GroupMessageBubble({
     super.key,
     required this.message,
     required this.isMe,
+    this.onRevoke,
   });
 
   @override
@@ -18,6 +22,7 @@ class GroupMessageBubble extends StatelessWidget {
     print('- attachmentUrl: ${message.attachmentUrl}');
     print('- attachmentType: ${message.attachmentType}');
     print('- isMe: $isMe');
+    print('- isRevoked: ${message.isRevoked}');
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -42,72 +47,105 @@ class GroupMessageBubble extends StatelessWidget {
                   ),
                 ),
               ),
-            if (message.attachmentUrl != null && message.attachmentType?.startsWith('image/') == true)
-              GestureDetector(
-                onTap: () => _showFullScreenImage(context, message.attachmentUrl!),
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.6,
-                    maxHeight: MediaQuery.of(context).size.width * 0.6,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.grey[200],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      message.attachmentUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Không thể tải ảnh',
-                                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          width: double.infinity,
-                          height: 200,
-                          padding: const EdgeInsets.all(16),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            if (message.content.isNotEmpty)
-              Container(
+            GestureDetector(
+              onLongPress: isMe && !message.isRevoked && onRevoke != null 
+                ? () => onRevoke!(message) 
+                : null,
+              child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isMe ? Colors.blue[400] : Colors.grey[300],
+                  color: message.isRevoked 
+                    ? Colors.grey[300]
+                    : (isMe ? Colors.blue[400] : Colors.grey[300]),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  message.content,
-                  style: TextStyle(
-                    color: isMe ? Colors.white : Colors.black,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (message.isRevoked)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.block,
+                            size: 16,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Tin nhắn đã bị thu hồi',
+                            style: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      )
+                    else ...[
+                      if (message.attachmentUrl != null && message.attachmentType?.startsWith('image/') == true)
+                        GestureDetector(
+                          onTap: () => _showFullScreenImage(context, message.attachmentUrl!),
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.6,
+                              maxHeight: MediaQuery.of(context).size.width * 0.6,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.grey[200],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                message.attachmentUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.error_outline, size: 40, color: Colors.grey[600]),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Không thể tải ảnh',
+                                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    width: double.infinity,
+                                    height: 200,
+                                    padding: const EdgeInsets.all(16),
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress.expectedTotalBytes != null
+                                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (message.content.isNotEmpty)
+                        Text(
+                          message.content,
+                          style: TextStyle(
+                            color: isMe ? Colors.white : Colors.black,
+                          ),
+                        ),
+                    ],
+                  ],
                 ),
               ),
+            ),
             Padding(
               padding: const EdgeInsets.only(top: 4, left: 12),
               child: Text(

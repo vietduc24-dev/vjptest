@@ -20,7 +20,22 @@ class ChatRepository {
   // Stream getters
   Stream<ChatMessage> get messageStream => _socketService.messageStream;
   Stream<Map<String, dynamic>> get statusStream => 
-    _socketService.statusStream.map((jsonStr) => jsonDecode(jsonStr) as Map<String, dynamic>);
+    _socketService.statusStream.map((jsonStr) {
+      final data = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return data;
+    });
+
+  // Thêm stream riêng cho sự kiện thu hồi tin nhắn
+  Stream<String> get messageRevokedStream => 
+    _socketService.statusStream
+        .where((jsonStr) {
+          final data = jsonDecode(jsonStr) as Map<String, dynamic>;
+          return data['type'] == 'message_revoked';
+        })
+        .map((jsonStr) {
+          final data = jsonDecode(jsonStr) as Map<String, dynamic>;
+          return data['messageId'] as String;
+        });
 
   // Load initial messages
    Future<Map<String, dynamic>> getInitialMessages({int page = 1, int limit = 20}) async {
@@ -114,4 +129,16 @@ class ChatRepository {
   void dispose() {
     sendOfflineStatus();
   }
+  
+  // Thêm phương thức thu hồi tin nhắn cá nhân
+  Future<void> revokePersonalMessage(String messageId) async {
+    try {
+      await ChatService.instance.revokePersonalMessage(messageId);
+    } catch (e) {
+      print('Error revoking personal message: $e');
+      throw Exception('Failed to revoke message: $e');
+    }
+  }
+  
+  
 }

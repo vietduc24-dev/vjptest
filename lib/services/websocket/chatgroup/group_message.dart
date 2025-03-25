@@ -8,6 +8,7 @@ class GroupMessage {
   final DateTime timestamp;
   final String? attachmentUrl;
   final String? attachmentType;
+  final bool isRevoked;
 
   GroupMessage({
     required this.id,
@@ -19,6 +20,7 @@ class GroupMessage {
     required this.timestamp,
     this.attachmentUrl,
     this.attachmentType,
+    this.isRevoked = false,
   });
 
   factory GroupMessage.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class GroupMessage {
     print('- attachmentUrl: ${json['attachmentUrl']}');
     print('- attachmentType: ${json['attachmentType']}');
     print('- messageType: ${json['messageType']}');
+    print('- isRevoked: ${json['is_revoked']}');
     print('- timestamp: ${json['timestamp']}');
 
     return GroupMessage(
@@ -45,6 +48,7 @@ class GroupMessage {
         : DateTime.now(),
       attachmentUrl: json['attachmentUrl'],
       attachmentType: json['attachmentType'],
+      isRevoked: json['is_revoked'] == true || json['type'] == 'group_message_revoked',
     );
   }
 
@@ -57,8 +61,9 @@ class GroupMessage {
       'sender_avatar': senderAvatar,
       'message': content,
       'timestamp': timestamp.toIso8601String(),
-      'attachment_url': attachmentUrl,
-      'attachment_type': attachmentType,
+      'attachmentUrl': attachmentUrl,
+      'attachmentType': attachmentType,
+      'is_revoked': isRevoked,
     };
   }
 } 

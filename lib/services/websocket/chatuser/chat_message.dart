@@ -5,6 +5,7 @@ class ChatMessage {
   final String content;
   final DateTime timestamp;
   final bool isRead;
+  final bool isRevoked;
   final String? attachmentUrl;
   final String? attachmentType;
   final String? senderName;
@@ -17,6 +18,7 @@ class ChatMessage {
     required this.content,
     required this.timestamp,
     this.isRead = false,
+    this.isRevoked = false,
     this.attachmentUrl,
     this.attachmentType,
     this.senderName,
@@ -31,6 +33,7 @@ class ChatMessage {
       content: json['message'],
       timestamp: DateTime.parse(json['timestamp']),
       isRead: json['isRead'] as bool? ?? false,
+      isRevoked: json['isRevoked'] as bool? ?? false,
       attachmentUrl: json['attachmentUrl'],
       attachmentType: json['attachmentType'],
       senderName: json['senderName'] as String?,
@@ -46,6 +49,7 @@ class ChatMessage {
       'message': content,
       'timestamp': timestamp.toIso8601String(),
       'isRead': isRead,
+      'isRevoked': isRevoked,
       'attachmentUrl': attachmentUrl,
       'attachmentType': attachmentType,
       if (senderName != null) 'senderName': senderName,
@@ -60,6 +64,7 @@ class ChatMessage {
     String? content,
     DateTime? timestamp,
     bool? isRead,
+    bool? isRevoked,
     String? attachmentUrl,
     String? attachmentType,
     String? senderName,
@@ -72,6 +77,7 @@ class ChatMessage {
       content: content ?? this.content,
       timestamp: timestamp ?? this.timestamp,
       isRead: isRead ?? this.isRead,
+      isRevoked: isRevoked ?? this.isRevoked,
       attachmentUrl: attachmentUrl ?? this.attachmentUrl,
       attachmentType: attachmentType ?? this.attachmentType,
       senderName: senderName ?? this.senderName,

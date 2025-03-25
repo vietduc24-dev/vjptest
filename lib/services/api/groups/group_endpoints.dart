@@ -3,7 +3,7 @@ import '../../base/method_request.dart';
 
 class GroupEndpoints {
   static String get _basePath => '/groups';
-
+  static String get __basePathMessage => '/messages';
   static EndpointType createGroup() {
     return EndpointType(
       path: _basePath,
@@ -63,6 +63,14 @@ class GroupEndpoints {
   static EndpointType uploadImage() {
     return EndpointType(
       path: '$_basePath/upload-image',
+      httpMethod: HttpMethod.post,
+      header: DefaultHeader.instance.addDefaultHeader(),
+    );
+  }
+
+  static EndpointType revokeMessage(String messageId) {
+    return EndpointType(
+      path: '/group/revoke/$messageId',
       httpMethod: HttpMethod.post,
       header: DefaultHeader.instance.addDefaultHeader(),
     );

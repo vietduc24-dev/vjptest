@@ -28,14 +28,15 @@ class LoginCubit extends Cubit<LoginState> {
         password: password,
       );
 
-      debugPrint('Login successful for user: ${user.username}');
+      debugPrint('✅ Login successful for user: ${user.username}');
+      
       emit(state.copyWith(
         status: BlocStatus.success,
         user: user,
         errorMessage: null,
       ));
     } catch (e, stackTrace) {
-      debugPrint('Login error: $e');
+      debugPrint('❌ Login error: $e');
       debugPrint('Stack trace: $stackTrace');
       emit(state.copyWith(
         status: BlocStatus.failure,

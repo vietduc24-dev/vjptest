@@ -170,4 +170,22 @@ class GroupService {
       rethrow;
     }
   }
+
+  Future<void> revokeMessage(String messageId) async {
+    try {
+      print('Calling revoke message API for messageId: $messageId');
+      final endpoint = GroupEndpoints.revokeMessage(messageId);
+      final response = await _apiProvider.post(
+        BaseEndpoint.getFullUrl('/messages' + (endpoint.path ?? '')),
+      );
+      print('Revoke message API response: $response');
+      
+      if (!response.success) {
+        throw Exception(response.message ?? 'Failed to revoke message');
+      }
+    } catch (e) {
+      print('Error revoking message: $e');
+      throw Exception('Failed to revoke message: $e');
+    }
+  }
 } 
