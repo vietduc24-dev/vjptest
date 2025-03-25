@@ -5,12 +5,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ChatApiConstants {
   static String get baseUrl {
     if (kIsWeb) {
-      return dotenv.env['API_URL_WEB'] ?? 'https://api.example.com/api';
+      return dotenv.env['API_URL_WEB'] ?? 'http://localhost:3000/api';
     }
 
     if (Platform.isAndroid) {
-      // Android emulator dùng 10.0.2.2 để trỏ về localhost
-      return dotenv.env['API_URL_ANDROID'] ?? 'http://10.0.2.2:3000/api';
+      // Kiểm tra xem có phải là thiết bị thật không
+      return dotenv.env['API_URL'] ?? 'http://192.168.0.76:3000/api';
     }
 
     if (Platform.isIOS) {
@@ -18,14 +18,29 @@ class ChatApiConstants {
       return dotenv.env['API_URL_IOS'] ?? 'http://localhost:3000/api';
     }
 
-    // Mặc định cho máy thật (Android physical device hoặc iOS real device)
-    return dotenv.env['API_URL'] ?? 'http://192.168.1.10:3000/api'; // <-- đổi thành IP máy oppa nếu cần
+    // Mặc định cho các trường hợp khác
+    return dotenv.env['API_URL'] ?? 'http://192.168.0.76:3000/api';
   }
 
-  static const String wsBaseUrl = 'ws://10.0.2.2:8090';
+  static String get wsBaseUrl {
+    if (kIsWeb) {
+      return dotenv.env['WS_URL_WEB'] ?? 'ws://localhost:8090';
+    }
+
+    if (Platform.isAndroid) {
+      // Kiểm tra xem có phải là thiết bị thật không
+      return dotenv.env['WS_URL_DEVICE'] ?? 'ws://192.168.0.76:8090';
+    }
+
+    if (Platform.isIOS) {
+      return dotenv.env['WS_URL_IOS'] ?? 'ws://localhost:8090';
+    }
+
+    return dotenv.env['WS_URL_DEVICE'] ?? 'ws://192.168.0.76:8090';
+  }
 
   // Message Endpoints
-  static String get personalMessages => '$baseUrl/messages/personal';
-  static String get groupMessages => '$baseUrl/messages/group';
-  static String get sendMessage => '$baseUrl/messages/send';
+  static String get personalMessages => '/messages/personal';
+  static String get groupMessages => '/messages/group';
+  static String get sendMessage => '/messages/send';
 }

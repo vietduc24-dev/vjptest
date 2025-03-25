@@ -14,9 +14,9 @@ class ApiProvider {
     _dio = Dio(
       BaseOptions(
         baseUrl: BaseEndpoint.baseUrl,
-        connectTimeout: const Duration(minutes: 1),
-        receiveTimeout: const Duration(minutes: 1),
-        sendTimeout: const Duration(minutes: 1),
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
         contentType: 'application/json',
       ),
     );
@@ -27,10 +27,11 @@ class ApiProvider {
         logPrint: kDebugMode ? debugPrint : null,
         retries: 3,
         retryDelays: const [
-          Duration(seconds: 1),
           Duration(seconds: 2),
-          Duration(seconds: 3),
+          Duration(seconds: 4),
+          Duration(seconds: 8),
         ],
+        retryableExtraStatuses: {401, 403},
       ),
     );
 
@@ -41,6 +42,16 @@ class ApiProvider {
         onError: _onError,
       ),
     );
+
+    if (kDebugMode) {
+      _dio.interceptors.add(LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        logPrint: (obj) {
+          debugPrint(obj.toString());
+        },
+      ));
+    }
   }
 
   Future<void> _onRequest(

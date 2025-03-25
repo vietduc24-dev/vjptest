@@ -39,19 +39,19 @@ class DefaultHeader {
 class BaseEndpoint {
   static String get baseUrl {
     if (kIsWeb) {
-      return dotenv.env['API_URL_WEB'] ?? 'http://your-web-api.com/api';
+      return dotenv.env['API_URL_WEB'] ?? 'http://localhost:3000/api';
     }
 
     if (Platform.isAndroid) {
-      return dotenv.env['API_URL_ANDROID'] ?? 'http://10.0.2.2:3000/api';
+      // Sử dụng 10.0.2.2 cho cả máy ảo và thiết bị thật khi debug qua USB
+      return dotenv.env['API_URL'] ?? 'http://10.0.2.2:3000/api';
     }
 
     if (Platform.isIOS) {
       return dotenv.env['API_URL_IOS'] ?? 'http://localhost:3000/api';
     }
 
-    // Máy thật (device) — nên dùng IP LAN thật của backend
-    return dotenv.env['API_URL'] ?? 'http://192.168.1.10:3000/api';
+    return dotenv.env['API_URL'] ?? 'http://10.0.2.2:3000/api';
   }
 
   static String get apiKey => dotenv.env['API_KEY'] ?? '';

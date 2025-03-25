@@ -30,11 +30,16 @@ class AuthenticationRepository {
       final token = response.data['token'] as String;
       final userData = response.data['user'] as Map<String, dynamic>;
 
-      // Lưu token
-      await _storage.write(key: 'auth_token', value: token);
+      // Lưu token vào cả secure storage và auth service
+      await Future.wait([
+        _storage.write(key: 'auth_token', value: token),
+        _authService.setToken(token)
+      ]);
+      debugPrint('🔑 Token saved successfully');
 
       return User.fromJson(userData, token: token);
     } catch (e) {
+      debugPrint('❌ Login error: $e');
       throw Exception('Failed to login: $e');
     }
   }
