@@ -131,6 +131,36 @@ class ApiProviderChat {
     }
   }
 
+  Future<BaseResponse> put(
+    String path, {
+    Map<String, dynamic>? data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      final response = await _dio.put(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return BaseResponse(
+          success: true,
+          data: response.data,
+          message: 'Success',
+        );
+      }
+
+      return BaseResponse(
+        success: false,
+        data: null,
+        message: 'Request failed with status: ${response.statusCode}',
+      );
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
   BaseResponse _handleError(DioException error) {
     String message;
 

@@ -96,4 +96,23 @@ class ChatService {
       rethrow;
     }
   }
+
+  // Thêm phương thức thu hồi tin nhắn cá nhân
+  Future<BaseResponse> revokePersonalMessage(String messageId) async {
+    try {
+      debugPrint('Revoking personal message: $messageId');
+      final response = await _apiProvider.post(
+        ChatApiConstants.getRevokePersonalMessageUrl(messageId),
+      );
+      debugPrint('Revoke message response: $response');
+
+      return response;
+    } catch (e) {
+      debugPrint('Error revoking personal message: $e');
+      rethrow;
+    }
+  }
+
+  // Thêm phương thức thu hồi tin nhắn nhóm
+ 
 }

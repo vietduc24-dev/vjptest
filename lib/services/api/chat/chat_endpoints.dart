@@ -43,4 +43,10 @@ class ChatApiConstants {
   static String get personalMessages => '/messages/personal';
   static String get groupMessages => '/messages/group';
   static String get sendMessage => '/messages/send';
+  static String get revokePersonalMessage => '/messages/personal/messages';
+  static String get revokeGroupMessage => '/messages/group/revoke';
+
+  // Tạo hàm helper để lấy full URL cho revoke message
+  static String getRevokePersonalMessageUrl(String messageId) => '/messages/personal/messages/$messageId/revoke';
+  static String getRevokeGroupMessageUrl(String messageId) => '/messages/group/revoke/$messageId';
 }

@@ -20,6 +20,7 @@ class ChatCubit extends Cubit<ChatState> {
   bool _hasMore = true;
   TranslationLanguage _currentLanguage = TranslationLanguage.none;
   final Map<String, String> _translatedMessages = {};
+  StreamSubscription<String>? _revokedMessageSubscription;
 
   ChatCubit({
     required ChatRepository repository,
@@ -121,10 +122,36 @@ class ChatCubit extends Cubit<ChatState> {
         }
       });
 
-      _statusSubscription = _chatRepository.statusStream.listen((data) {
+      // Thêm lắng nghe sự kiện thu hồi tin nhắn
+      _revokedMessageSubscription = _chatRepository.messageRevokedStream.listen((messageId) {
         if (_isClosed || state.status == BlocStatus.failure) return;
         
         if (state is ChatConnected) {
+          final currentState = state as ChatConnected;
+          
+          // Tìm và cập nhật tin nhắn đã bị thu hồi
+          final updatedMessages = currentState.messages.map((message) {
+            if (message.id == messageId) {
+              // Tạo phiên bản mới của tin nhắn với trạng thái isRevoked = true
+              return message.copyWith(
+                isRevoked: true,
+                content: "Tin nhắn đã được thu hồi",
+                attachmentUrl: null,
+                attachmentType: null,
+              );
+            }
+            return message;
+          }).toList();
+          
+          _messages = updatedMessages;
+          emit(currentState.copyWith(messages: _messages));
+        }
+      });
+
+      _statusSubscription = _chatRepository.statusStream.listen((data) {
+        if (_isClosed || state.status == BlocStatus.failure) return;
+        
+        if (state is ChatConnected && data['type'] != 'message_revoked') {
           final currentState = state as ChatConnected;
           final status = data['status'] as String;
           final senderId = data['senderId'] as String;
@@ -159,6 +186,22 @@ class ChatCubit extends Cubit<ChatState> {
       print('Error sending message: $e');
       if (!_isClosed) {
         emit(ChatError('Failed to send message: $e'));
+      }
+    }
+  }
+
+  Future<void> revokeMessage(String messageId) async {
+    if (_isClosed || state.status == BlocStatus.failure) return;
+    
+    try {
+        await _chatRepository.revokePersonalMessage(messageId);
+    
+      // Server sẽ gửi lại một message mới với trạng thái isRevoked=true
+      // thông qua WebSocket, nên chúng ta không cần update state trực tiếp
+    } catch (e) {
+      print('Error revoking message: $e');
+      if (!_isClosed) {
+        emit(ChatError('Failed to revoke message: $e'));
       }
     }
   }
@@ -222,6 +265,7 @@ class ChatCubit extends Cubit<ChatState> {
     _typingTimer?.cancel();
     _messageSubscription?.cancel();
     _statusSubscription?.cancel();
+    _revokedMessageSubscription?.cancel();
     return super.close();
   }
 } 

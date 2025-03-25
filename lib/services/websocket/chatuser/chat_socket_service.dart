@@ -52,6 +52,23 @@ class ChatSocketService {
             attachmentType: message['attachmentType'],
           );
           _messageController.add(chatMessage);
+        } else if (message['type'] == 'personal_message_revoked' || message['type'] == 'group_message_revoked') {
+          // Thay đổi cách xử lý tin nhắn bị thu hồi
+          // Tạo sự kiện đặc biệt để update tin nhắn hiện có thay vì thêm tin nhắn mới
+          final messageId = message['id'].toString();
+          final receiverId = message['receiver'] ?? message['group_id'];
+          final senderId = message['sender'];
+          
+          // Tạo một StreamController riêng cho sự kiện thu hồi tin nhắn
+          final revokeEvent = {
+            'type': 'message_revoked',
+            'messageId': messageId,
+            'senderId': senderId,
+            'receiverId': receiverId
+          };
+          
+          // Phát ra sự kiện thu hồi
+          _statusController.add(jsonEncode(revokeEvent));
         } else if (message['type'] == 'error') {
           print('WebSocket error: ${message['message']}');
           if (!_isAuthenticated) {
