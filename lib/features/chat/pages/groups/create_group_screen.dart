@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../common/bloc_status.dart';
 import '../../cubit/groups/groups_cubit.dart';
 import '../../repository/friends/friends_repository.dart';
 import '../../../../services/api/friends/friends_load/list_friends.dart';
@@ -165,18 +166,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             Expanded(
               child: BlocBuilder<FriendsCubit, FriendsState>(
                 builder: (context, state) {
-                  if (state is FriendsLoading) {
+                  if (state.status == BlocStatus.loading && !state.isLoadingMore) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (state is FriendsError) {
-                    return Center(child: Text(state.message));
+                  if (state.hasError) {
+                    return Center(child: Text(state.errorMessage!));
                   }
 
                   List<Friend> friends = [];
-                  if (state is FriendsLoaded) {
+                  if (_searchController.text.isEmpty) {
                     friends = state.friends.items;
-                  } else if (state is SearchResultsLoaded) {
+                  } else {
                     friends = state.searchResults;
                   }
 

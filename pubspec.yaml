@@ -17,7 +17,7 @@ dependencies:
   flutter_dotenv: ^5.1.0  # Thay thế flutter_config
 
   # 📌 Networking
-  dio: ^5.4.1  # HTTP client mạnh mẽ
+  dio: ^5.8.0+1  # HTTP client mạnh mẽ
   dio_smart_retry: ^7.0.0  # Retry interceptor for Dio
   http: ^1.2.0  # Thêm package http
   http_parser: ^4.0.2  # Hỗ trợ parse HTTP headers
@@ -63,6 +63,8 @@ dependencies:
 
   # 📌 JWT Decoder
   jwt_decoder: ^2.0.1
+  path_provider: ^2.1.5
+  flutter_svg: ^2.0.17
 
 dev_dependencies:
   flutter_test:
@@ -72,17 +74,20 @@ dev_dependencies:
   flutter_lints: ^2.0.0
 
   # 📌 JSON Code Generator
-  build_runner: ^2.4.6
-  json_serializable: ^6.7.1
+  build_runner: ^2.4.14
+  json_serializable: ^6.9.4
   encrypt: ^5.0.3
 
 flutter:
   uses-material-design: true
   assets:
     - .env
-    - assets/images/
+    - assets/images/logoVJP.png
+    - assets/images/vjp-banner.jpg
     - assets/images/logo1VN.png
     - assets/images/logo3ENG.png
     - assets/images/default_avatar.png
     - assets/images/logo2JP.png
     - assets/images/logoGoogle.jpg
+    - assets/images/backgroundCompany.jpg
+    - lib/common/datatest/companies.json

@@ -3,21 +3,26 @@ class PaginatedList<T> {
   final int page;
   final int pageSize;
   final bool hasMore;
+  final int total;
 
-  PaginatedList({
+  const PaginatedList({
     required this.items,
     required this.page,
     required this.pageSize,
     required this.hasMore,
+    required this.total,
   });
 
+  static const emptyList = PaginatedList<Never>(
+    items: [],
+    page: 1,
+    pageSize: 10,
+    hasMore: false,
+    total: 0,
+  );
+
   factory PaginatedList.empty() {
-    return PaginatedList(
-      items: [],
-      page: 1,
-      pageSize: 10,
-      hasMore: false,
-    );
+    return emptyList as PaginatedList<T>;
   }
 
   factory PaginatedList.fromList(List<T> list, {int page = 1, int pageSize = 10}) {
@@ -32,6 +37,7 @@ class PaginatedList<T> {
       page: page,
       pageSize: pageSize,
       hasMore: endIndex < list.length,
+      total: list.length,
     );
   }
 } 

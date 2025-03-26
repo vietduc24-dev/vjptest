@@ -23,54 +23,113 @@ class FriendsService {
   // Get all friends with pagination
   Future<PaginatedList<Friend>> getFriendsList({int page = 1, int pageSize = 10}) async {
     try {
-      // If we don't have cached data or it's the first page, fetch from API
-      if (_cachedFriends.isEmpty || page == 1) {
-        final endpoint = FriendsEndpoint.getFriendsList();
-        final response = await _apiProvider.get(endpoint.path!);
-        
-        debugPrint('getFriendsList response type: ${response.runtimeType}');
-        debugPrint('getFriendsList response: $response');
-        
-        if (response is List) {
-          _cachedFriends = _parseFriendsList(response);
-        } else if (response is BaseResponse && response.success) {
-          _cachedFriends = _parseFriendsList(response.data);
+      final endpoint = FriendsEndpoint.getFriendsList();
+      debugPrint('🔍 [GET Friends List] URL: ${endpoint.path}');
+      final response = await _apiProvider.get(
+        endpoint.path!,
+        params: {
+          'page': page.toString(),
+          'pageSize': pageSize.toString(),
+        },
+      );
+      
+      debugPrint('📥 [GET Friends List] Response received: $response');
+      
+      List<Friend> friends = [];
+      if (response is BaseResponse) {
+        debugPrint('📦 [GET Friends List] Parsing BaseResponse...');
+        if (response.success) {
+          try {
+            if (response.data is List) {
+              friends = (response.data as List).map((item) {
+                debugPrint('🔄 [GET Friends List] Parsing item: $item');
+                return Friend.fromJson(item as Map<String, dynamic>);
+              }).toList();
+            }
+          } catch (e) {
+            debugPrint('❌ [GET Friends List] Error parsing friends: $e');
+            throw Exception('Failed to parse friends data: $e');
+          }
+        } else {
+          throw Exception(response.message ?? 'Failed to get friends list');
         }
+      } else if (response is List) {
+        // Handle direct array response
+        debugPrint('📦 [GET Friends List] Parsing direct array response...');
+        try {
+          friends = response.map((item) {
+            debugPrint('🔄 [GET Friends List] Parsing item: $item');
+            return Friend.fromJson(item as Map<String, dynamic>);
+          }).toList();
+        } catch (e) {
+          debugPrint('❌ [GET Friends List] Error parsing friends: $e');
+          throw Exception('Failed to parse friends data: $e');
+        }
+      } else {
+        throw Exception('Unexpected response type: ${response.runtimeType}');
       }
       
-      return PaginatedList.fromList(_cachedFriends, page: page, pageSize: pageSize);
+      debugPrint('✅ [GET Friends List] Parsed ${friends.length} friends');
+      return PaginatedList.fromList(friends, page: page, pageSize: pageSize);
     } catch (e) {
-      debugPrint('getFriendsList error: $e');
-      throw Exception('Failed to load friends list: $e');
+      debugPrint('❌ [GET Friends List] Error: $e');
+      rethrow;
     }
   }
 
   // Get friend requests with pagination
   Future<PaginatedList<Friend>> getFriendRequests({int page = 1, int pageSize = 10}) async {
     try {
-      // If we don't have cached data or it's the first page, fetch from API
-      if (_cachedRequests.isEmpty || page == 1) {
-        final endpoint = FriendsEndpoint.getFriendRequests();
-        debugPrint('🔍 [GET Friend Requests] Making request...');
-        final response = await _apiProvider.get(endpoint.path!, params: {
+      final endpoint = FriendsEndpoint.getFriendRequests();
+      debugPrint('🔍 [GET Friend Requests] URL: ${endpoint.path}');
+      final response = await _apiProvider.get(
+        endpoint.path!,
+        params: {
           'page': page.toString(),
           'pageSize': pageSize.toString(),
-        });
-        debugPrint('🔍 [GET Friend Requests] Response received');
-
-        debugPrint('getFriendRequests response type: ${response.runtimeType}');
-        debugPrint('getFriendRequests response: $response');
-
-        if (response is List) {
-          _cachedRequests = _parseFriendsList(response);
-        } else if (response is BaseResponse && response.success) {
-          _cachedRequests = _parseFriendsList(response.data);
+        },
+      );
+      
+      debugPrint('📥 [GET Friend Requests] Response received: $response');
+      
+      List<Friend> requests = [];
+      if (response is BaseResponse) {
+        debugPrint('📦 [GET Friend Requests] Parsing BaseResponse...');
+        if (response.success) {
+          try {
+            if (response.data is List) {
+              requests = (response.data as List).map((item) {
+                debugPrint('🔄 [GET Friend Requests] Parsing item: $item');
+                return Friend.fromJson(item as Map<String, dynamic>);
+              }).toList();
+            }
+          } catch (e) {
+            debugPrint('❌ [GET Friend Requests] Error parsing requests: $e');
+            throw Exception('Failed to parse friend requests data: $e');
+          }
+        } else {
+          throw Exception(response.message ?? 'Failed to get friend requests');
         }
+      } else if (response is List) {
+        // Handle direct array response
+        debugPrint('📦 [GET Friend Requests] Parsing direct array response...');
+        try {
+          requests = response.map((item) {
+            debugPrint('🔄 [GET Friend Requests] Parsing item: $item');
+            return Friend.fromJson(item as Map<String, dynamic>);
+          }).toList();
+        } catch (e) {
+          debugPrint('❌ [GET Friend Requests] Error parsing requests: $e');
+          throw Exception('Failed to parse friend requests data: $e');
+        }
+      } else {
+        throw Exception('Unexpected response type: ${response.runtimeType}');
       }
       
-      return PaginatedList.fromList(_cachedRequests, page: page, pageSize: pageSize);
+      debugPrint('✅ [GET Friend Requests] Parsed ${requests.length} requests');
+      return PaginatedList.fromList(requests, page: page, pageSize: pageSize);
     } catch (e) {
-      debugPrint('❌ getFriendRequests error: $e');
+      debugPrint('❌ [GET Friend Requests] Error: $e');
       rethrow;
     }
   }
@@ -79,7 +138,11 @@ class FriendsService {
   Future<List<Friend>> searchUsers(String query) async {
     try {
       final endpoint = FriendsEndpoint.searchUsers(query);
-      final response = await _apiProvider.get(endpoint.path!);
+      debugPrint('🔍 [Search Users] URL: ${endpoint.path}');
+      final response = await _apiProvider.get(
+        endpoint.path!,
+        params: {'q': query},
+      );
       
       debugPrint('searchUsers response type: ${response.runtimeType}');
       debugPrint('searchUsers response: $response');

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../common/bloc_status.dart';
 import '../../../../services/api/friends/friends_load/list_friends.dart';
 import '../../../../services/base/paginated_list.dart';
 import '../../repository/friends/friends_repository.dart';
@@ -6,59 +7,99 @@ import 'firends_state.dart';
 
 class FriendsCubit extends Cubit<FriendsState> {
   final FriendsRepository _friendsRepository;
-  PaginatedList<Friend>? _currentFriends;
-  PaginatedList<Friend>? _currentRequests;
 
   FriendsCubit({
     required FriendsRepository friendsRepository,
   })  : _friendsRepository = friendsRepository,
-        super(FriendsInitial());
+        super(const FriendsState());
 
   Future<void> loadFriends({bool refresh = false}) async {
     try {
       if (refresh) {
+        print('🔄 Refreshing friends list...');
         _friendsRepository.clearCache();
-        _currentFriends = null;
-        _currentRequests = null;
       }
 
-      emit(FriendsLoading(isFirstLoad: _currentFriends == null));
-      
-      final friends = await _friendsRepository.getFriendsList();
-      final requests = await _friendsRepository.getFriendRequests();
-      
-      _currentFriends = friends;
-      _currentRequests = requests;
-      
-      emit(FriendsLoaded(
-        friends: friends,
-        friendRequests: requests,
+      emit(state.copyWith(
+        status: BlocStatus.loading,
+        isLoadingMore: false,
       ));
-    } catch (e) {
-      emit(FriendsError(e.toString()));
+
+      PaginatedList<Friend>? friends;
+      PaginatedList<Friend>? requests;
+
+      // Load friends first
+      try {
+        print('🔄 Fetching friends list...');
+        friends = await _friendsRepository.getFriendsList();
+        print('✅ Friends list loaded: ${friends.items.length} friends');
+      } catch (e, stackTrace) {
+        print('❌ Error loading friends: $e');
+        print('Stack trace: $stackTrace');
+      }
+
+      // Then load requests
+      try {
+        print('🔄 Fetching friend requests...');
+        requests = await _friendsRepository.getFriendRequests();
+        print('✅ Friend requests loaded: ${requests.items.length} requests');
+      } catch (e, stackTrace) {
+        print('❌ Error loading requests: $e');
+        print('Stack trace: $stackTrace');
+      }
+
+      // Emit state with whatever data we have
+      if (friends != null || requests != null) {
+        print('✅ Emitting success state');
+        print('Friends count: ${friends?.items.length ?? 0}');
+        print('Requests count: ${requests?.items.length ?? 0}');
+
+        emit(state.copyWith(
+          status: BlocStatus.success,
+          friends: friends ?? PaginatedList.empty(),
+          friendRequests: requests ?? PaginatedList.empty(),
+          errorMessage: null,
+        ));
+      } else {
+        // Only emit error if both calls failed
+        print('❌ Both friends and requests failed to load');
+        emit(state.copyWith(
+          status: BlocStatus.failure,
+          errorMessage: 'Không thể tải danh sách bạn bè',
+        ));
+      }
+    } catch (e, stackTrace) {
+      print('❌ Unexpected error in loadFriends: $e');
+      print('Stack trace: $stackTrace');
+      emit(state.copyWith(
+        status: BlocStatus.failure,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
   Future<void> loadMoreFriends() async {
     try {
-      if (state is! FriendsLoaded) return;
-      final currentState = state as FriendsLoaded;
-      
-      if (!currentState.friends.hasMore) return;
-      
-      emit(FriendsLoading(isFirstLoad: false, isLoadingMore: true));
-      
-      final nextPage = currentState.friends.page + 1;
+      if (!state.friends.hasMore || state.isLoadingMore) return;
+
+      emit(state.copyWith(
+        isLoadingMore: true,
+      ));
+
+      final nextPage = state.friends.page + 1;
       final friends = await _friendsRepository.getFriendsList(page: nextPage);
-      
-      _currentFriends = friends;
-      
-      emit(FriendsLoaded(
+
+      emit(state.copyWith(
+        status: BlocStatus.success,
         friends: friends,
-        friendRequests: currentState.friendRequests,
+        isLoadingMore: false,
       ));
     } catch (e) {
-      emit(FriendsError(e.toString()));
+      emit(state.copyWith(
+        status: BlocStatus.failure,
+        errorMessage: e.toString(),
+        isLoadingMore: false,
+      ));
     }
   }
 
@@ -66,35 +107,34 @@ class FriendsCubit extends Cubit<FriendsState> {
     try {
       final response = await _friendsRepository.sendFriendRequest(username);
       if (response.success) {
-        final currentState = state;
-        if (currentState is FriendsLoaded) {
-          final updatedResults = currentState.searchResults.map((user) {
-            if (user.username == username) {
-              return Friend(
-                username: user.username,
-                fullName: user.fullName,
-                avatar: user.avatar,
-                friendshipStatus: 'pending_sent',
-              );
-            }
-            return user;
-          }).toList();
+        final updatedResults = state.searchResults.map((user) {
+          if (user.username == username) {
+            return Friend(
+              username: user.username,
+              fullName: user.fullName,
+              avatar: user.avatar,
+              friendshipStatus: 'pending_sent',
+            );
+          }
+          return user;
+        }).toList();
 
-          // Emit success message first
-          emit(FriendRequestSent(response.message ?? 'Đã gửi lời mời kết bạn'));
-          
-          // Then restore the state with updated results
-          emit(FriendsLoaded(
-            friends: currentState.friends,
-            friendRequests: currentState.friendRequests,
-            searchResults: updatedResults,
-          ));
-        }
+        emit(state.copyWith(
+          status: BlocStatus.success,
+          searchResults: updatedResults,
+          successMessage: response.message ?? 'Đã gửi lời mời kết bạn',
+        ));
       } else {
-        emit(FriendsError(response.message ?? 'Không thể gửi lời mời kết bạn'));
+        emit(state.copyWith(
+          status: BlocStatus.failure,
+          errorMessage: response.message ?? 'Không thể gửi lời mời kết bạn',
+        ));
       }
     } catch (e) {
-      emit(FriendsError(e.toString()));
+      emit(state.copyWith(
+        status: BlocStatus.failure,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
@@ -102,35 +142,48 @@ class FriendsCubit extends Cubit<FriendsState> {
     try {
       final response = await _friendsRepository.acceptFriendRequest(username);
       if (response.success) {
-        final currentState = state;
-        if (currentState is FriendsLoaded) {
-          final updatedResults = currentState.searchResults.map((user) {
-            if (user.username == username) {
-              return Friend(
-                username: user.username,
-                fullName: user.fullName,
-                avatar: user.avatar,
-                friendshipStatus: 'friend',
-              );
-            }
-            return user;
-          }).toList();
+        // Cập nhật trạng thái kết bạn trong searchResults
+        final updatedResults = state.searchResults.map((user) {
+          if (user.username == username) {
+            return Friend(
+              username: user.username,
+              fullName: user.fullName,
+              avatar: user.avatar,
+              friendshipStatus: 'friend',
+            );
+          }
+          return user;
+        }).toList();
 
-          // Emit success message first
-          emit(FriendRequestResponded(response.message ?? 'Đã chấp nhận lời mời kết bạn'));
-          
-          // Then restore the state with updated results
-          emit(FriendsLoaded(
-            friends: currentState.friends,
-            friendRequests: currentState.friendRequests,
-            searchResults: updatedResults,
-          ));
-        }
+        // Cập nhật danh sách friend requests
+        final updatedRequests = PaginatedList(
+          items: state.friendRequests.items.where((req) => req.username != username).toList(),
+          page: state.friendRequests.page,
+          pageSize: state.friendRequests.pageSize,
+          hasMore: state.friendRequests.hasMore,
+          total: state.friendRequests.total - 1,
+        );
+
+        emit(state.copyWith(
+          status: BlocStatus.success,
+          searchResults: updatedResults,
+          friendRequests: updatedRequests,
+          successMessage: response.message ?? 'Đã chấp nhận lời mời kết bạn',
+        ));
+
+        // Reload friends list để cập nhật bạn mới
+        loadFriends();
       } else {
-        emit(FriendsError(response.message ?? 'Không thể chấp nhận lời mời kết bạn'));
+        emit(state.copyWith(
+          status: BlocStatus.failure,
+          errorMessage: response.message ?? 'Không thể chấp nhận lời mời kết bạn',
+        ));
       }
     } catch (e) {
-      emit(FriendsError(e.toString()));
+      emit(state.copyWith(
+        status: BlocStatus.failure,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
@@ -138,45 +191,64 @@ class FriendsCubit extends Cubit<FriendsState> {
     try {
       final response = await _friendsRepository.rejectFriendRequest(username);
       if (response.success) {
-        final currentState = state;
-        if (currentState is FriendsLoaded) {
-          final updatedResults = currentState.searchResults.map((user) {
-            if (user.username == username) {
-              return Friend(
-                username: user.username,
-                fullName: user.fullName,
-                avatar: user.avatar,
-                friendshipStatus: 'none',
-              );
-            }
-            return user;
-          }).toList();
+        // Cập nhật trạng thái kết bạn trong searchResults
+        final updatedResults = state.searchResults.map((user) {
+          if (user.username == username) {
+            return Friend(
+              username: user.username,
+              fullName: user.fullName,
+              avatar: user.avatar,
+              friendshipStatus: 'none',
+            );
+          }
+          return user;
+        }).toList();
 
-          // Emit success message first
-          emit(FriendRequestResponded(response.message ?? 'Đã từ chối lời mời kết bạn'));
-          
-          // Then restore the state with updated results
-          emit(FriendsLoaded(
-            friends: currentState.friends,
-            friendRequests: currentState.friendRequests,
-            searchResults: updatedResults,
-          ));
-        }
+        // Cập nhật danh sách friend requests
+        final updatedRequests = PaginatedList(
+          items: state.friendRequests.items.where((req) => req.username != username).toList(),
+          page: state.friendRequests.page,
+          pageSize: state.friendRequests.pageSize,
+          hasMore: state.friendRequests.hasMore,
+          total: state.friendRequests.total - 1,
+        );
+
+        emit(state.copyWith(
+          status: BlocStatus.success,
+          searchResults: updatedResults,
+          friendRequests: updatedRequests,
+          successMessage: response.message ?? 'Đã từ chối lời mời kết bạn',
+        ));
       } else {
-        emit(FriendsError(response.message ?? 'Không thể từ chối lời mời kết bạn'));
+        emit(state.copyWith(
+          status: BlocStatus.failure,
+          errorMessage: response.message ?? 'Không thể từ chối lời mời kết bạn',
+        ));
       }
     } catch (e) {
-      emit(FriendsError(e.toString()));
+      emit(state.copyWith(
+        status: BlocStatus.failure,
+        errorMessage: e.toString(),
+      ));
     }
   }
 
   Future<void> searchUsers(String query) async {
-    emit(FriendsLoading());
+    emit(state.copyWith(
+      status: BlocStatus.loading,
+    ));
+    
     try {
       final results = await _friendsRepository.searchUsers(query);
-      emit(SearchResultsLoaded(results));
+      emit(state.copyWith(
+        status: BlocStatus.success,
+        searchResults: results,
+      ));
     } catch (e) {
-      emit(FriendsError(e.toString()));
+      emit(state.copyWith(
+        status: BlocStatus.failure,
+        errorMessage: e.toString(),
+      ));
     }
   }
 }

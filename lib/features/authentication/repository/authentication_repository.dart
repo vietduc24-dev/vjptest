@@ -1,15 +1,40 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../../../models/user_model.dart';
 import '../../../services/api/authentication/auth_service.dart';
 import '../../../services/api/authentication/vjpload/sign_in_vjpload.dart';
 import '../../../services/api/authentication/vjpload/sign_up_vjpload.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter/foundation.dart';
 
 class AuthenticationRepository {
   final AuthService _authService;
   final _storage = const FlutterSecureStorage();
 
   AuthenticationRepository(this._authService);
+
+  Future<User?> getCurrentUser() async {
+    try {
+      // Lấy token từ secure storage
+      final accessToken = await _storage.read(key: 'auth_token');
+      if (accessToken == null) {
+        debugPrint('No access token found in storage');
+        return null;
+      }
+
+      // Lấy thông tin user từ API
+      final response = await _authService.getCurrentUser();
+      if (!response.success) {
+        debugPrint('Failed to get user data from API');
+        return null;
+      }
+
+      final userData = response.data['user'] as Map<String, dynamic>;
+      return User.fromJson(userData, token: accessToken);
+    } catch (e) {
+      debugPrint('❌ Get current user error: $e');
+      return null;
+    }
+  }
 
   Future<User> login({
     required String username,
@@ -20,24 +45,27 @@ class AuthenticationRepository {
         username: username,
         password: password,
       );
-      
       final response = await _authService.login(payload);
 
       if (!response.success) {
         throw Exception(response.message ?? 'Failed to login');
       }
 
-      final token = response.data['token'] as String;
+      final accessToken = response.data['accessToken'] as String;
+      final refreshToken = response.data['refreshToken'] as String;
       final userData = response.data['user'] as Map<String, dynamic>;
 
-      // Lưu token vào cả secure storage và auth service
+      // Lưu token vào cả SecureStorage và AuthService
       await Future.wait([
-        _storage.write(key: 'auth_token', value: token),
-        _authService.setToken(token)
+        _storage.write(key: 'auth_token', value: accessToken),
+        _storage.write(key: 'refresh_token', value: refreshToken),
+        _authService.setToken(accessToken),
+        _authService.setRefreshToken(refreshToken),
       ]);
+
       debugPrint('🔑 Token saved successfully');
 
-      return User.fromJson(userData, token: token);
+      return User.fromJson(userData, token: accessToken);
     } catch (e) {
       debugPrint('❌ Login error: $e');
       throw Exception('Failed to login: $e');
@@ -70,31 +98,40 @@ class AuthenticationRepository {
         throw Exception(response.message ?? 'Failed to register');
       }
 
-      final token = response.data['token'] as String;
+      final accessToken = response.data['accessToken'] as String;
+      final refreshToken = response.data['refreshToken'] as String;
       final userData = response.data['user'] as Map<String, dynamic>;
 
-      // Lưu token
-      await _storage.write(key: 'auth_token', value: token);
+      await Future.wait([
+        _storage.write(key: 'auth_token', value: accessToken),
+        _storage.write(key: 'refresh_token', value: refreshToken),
+      ]);
 
-      return User.fromJson(userData, token: token);
+      return User.fromJson(userData, token: accessToken);
     } catch (e) {
+      debugPrint('❌ Register error: $e');
       throw Exception('Failed to register: $e');
     }
   }
 
   Future<void> logout() async {
     try {
-      // Xóa token khỏi secure storage
-      await _storage.delete(key: 'auth_token');
-      debugPrint('Token deleted, local logout completed');
+      await Future.wait([
+        _storage.delete(key: 'auth_token'),
+        _storage.delete(key: 'refresh_token'),
+      ]);
+      debugPrint('🚪 Tokens cleared from secure storage');
     } catch (e) {
-      debugPrint('Error during logout: $e');
-      // Vẫn throw để LoginCubit biết có lỗi
+      debugPrint('❌ Logout error: $e');
       throw Exception('Failed to clear local data: $e');
     }
   }
 
-  Future<String?> getToken() async {
+  Future<String?> getAccessToken() async {
     return _storage.read(key: 'auth_token');
+  }
+
+  Future<String?> getRefreshToken() async {
+    return _storage.read(key: 'refresh_token');
   }
 }
