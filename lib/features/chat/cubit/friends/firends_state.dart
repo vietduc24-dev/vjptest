@@ -1,76 +1,59 @@
 import 'package:equatable/equatable.dart';
+import '../../../../common/bloc_status.dart';
 import '../../../../services/api/friends/friends_load/list_friends.dart';
 import '../../../../services/base/paginated_list.dart';
 
-abstract class FriendsState extends Equatable {
-  const FriendsState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class FriendsInitial extends FriendsState {}
-
-class FriendsLoading extends FriendsState {
-  final bool isFirstLoad;
-  final bool isLoadingMore;
-
-  const FriendsLoading({
-    this.isFirstLoad = true,
-    this.isLoadingMore = false,
-  });
-
-  @override
-  List<Object?> get props => [isFirstLoad, isLoadingMore];
-}
-
-class FriendsLoaded extends FriendsState {
+class FriendsState extends Equatable {
+  final BlocStatus status;
   final PaginatedList<Friend> friends;
   final PaginatedList<Friend> friendRequests;
   final List<Friend> searchResults;
+  final String? errorMessage;
+  final String? successMessage;
+  final bool isLoadingMore;
 
-  const FriendsLoaded({
-    required this.friends,
-    required this.friendRequests,
+  const FriendsState({
+    this.status = BlocStatus.initial,
+    this.friends = PaginatedList.emptyList,
+    this.friendRequests = PaginatedList.emptyList,
     this.searchResults = const [],
+    this.errorMessage,
+    this.successMessage,
+    this.isLoadingMore = false,
   });
 
-  @override
-  List<Object?> get props => [friends, friendRequests, searchResults];
-}
+  bool get isInitialLoading => status == BlocStatus.loading && !isLoadingMore;
+  bool get hasError => status == BlocStatus.failure && errorMessage != null;
+  bool get isSuccess => status == BlocStatus.success;
 
-class SearchResultsLoaded extends FriendsState {
-  final List<Friend> searchResults;
-
-  const SearchResultsLoaded(this.searchResults);
-
-  @override
-  List<Object?> get props => [searchResults];
-}
-
-class FriendsError extends FriendsState {
-  final String message;
-
-  const FriendsError(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
-class FriendRequestSent extends FriendsState {
-  final String message;
-
-  const FriendRequestSent(this.message);
+  FriendsState copyWith({
+    BlocStatus? status,
+    PaginatedList<Friend>? friends,
+    PaginatedList<Friend>? friendRequests,
+    List<Friend>? searchResults,
+    String? errorMessage,
+    String? successMessage,
+    bool? isLoadingMore,
+  }) {
+    return FriendsState(
+      status: status ?? this.status,
+      friends: friends ?? this.friends,
+      friendRequests: friendRequests ?? this.friendRequests,
+      searchResults: searchResults ?? this.searchResults,
+      errorMessage: errorMessage,  // Null để clear error
+      successMessage: successMessage,  // Null để clear message
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
 
   @override
-  List<Object?> get props => [message];
-}
-
-class FriendRequestResponded extends FriendsState {
-  final String message;
-
-  const FriendRequestResponded(this.message);
-
-  @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [
+    status,
+    friends,
+    friendRequests,
+    searchResults,
+    errorMessage,
+    successMessage,
+    isLoadingMore,
+  ];
 }

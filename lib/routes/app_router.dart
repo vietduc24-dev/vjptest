@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../features/authentication/pages/login_page.dart';
 import '../features/authentication/pages/register_page.dart';
-import '../features/company/pages/home_page.dart';
+import '../features/company/pages/profile_page.dart';
+import '../features/home/pages/home_page.dart';
 import '../features/chat/pages/friends/friends_list_screen.dart';
 import '../features/chat/pages/friends/friend_requests_screen.dart';
 import '../features/chat/pages/groups/group_list_screen.dart';
@@ -26,13 +27,42 @@ import '../features/chat/pages/groups/create_group_screen.dart';
 import '../features/chat/pages/groups/group_chat_screen.dart';
 import '../services/websocket/WebSocketConfig.dart';
 import '../services/api/groups/models/group.dart';
-import 'dart:async'; // Cho StreamSubscription
+import '../features/company/repository/company_repository.dart';
+import '../features/company/cubit/company_cubit.dart';
+import '../features/authentication/repository/authentication_repository.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final goRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
+  redirect: (context, state) async {
+    // Lấy AuthenticationRepository từ context
+    final authRepo = context.read<AuthenticationRepository>();
+
+    // Các route không cần auth
+    final publicRoutes = ['/login', '/register'];
+    final isPublicRoute = publicRoutes.contains(state.matchedLocation);
+
+    // Kiểm tra token
+    final token = await authRepo.getAccessToken();
+    final isAuthenticated = token != null;
+
+    if (!isAuthenticated && !isPublicRoute) {
+      // Chưa đăng nhập và đang truy cập route cần auth
+      // => Chuyển về login
+      return '/login';
+    }
+
+    if (isAuthenticated && isPublicRoute) {
+      // Đã đăng nhập nhưng đang ở login/register
+      // => Chuyển về home
+      return '/home';
+    }
+
+    // Các trường hợp còn lại giữ nguyên route
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/login',
@@ -46,8 +76,24 @@ final goRouter = GoRouter(
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return ScaffoldWithNavBar(
-          navigationShell: navigationShell,
+        return MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider(
+              create: (context) => CompanyRepository(),
+            ),
+          ],
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (context) => CompanyCubit(
+                  companyRepository: context.read<CompanyRepository>(),
+                )..fetchCompanies(),
+              ),
+            ],
+            child: ScaffoldWithNavBar(
+              navigationShell: navigationShell,
+            ),
+          ),
         );
       },
       branches: [
@@ -75,24 +121,19 @@ final goRouter = GoRouter(
               pageBuilder: (context, state) => MaterialPage(
                 child: PageWrapper(
                   canPop: false,
-                  child: MultiRepositoryProvider(
-                    providers: [
-                      RepositoryProvider(
-                        create: (context) => FriendsService(
-                            apiProvider: context.read<ApiProvider>()),
-                      ),
-                      RepositoryProvider(
-                        create: (context) => FriendsRepository(
-                            friendsService: context.read<FriendsService>()),
-                      ),
-                    ],
-                    child: BlocProvider(
-                      create: (context) => FriendsCubit(
-                          friendsRepository:
-                          context.read<FriendsRepository>())
-                        ..loadFriends(),
-                      child: const FriendsListScreen(),
-                    ),
+                  child: Builder(
+                    builder: (context) {
+                      final apiProvider = context.read<ApiProvider>();
+                      final friendsService = FriendsService(apiProvider: apiProvider);
+                      final friendsRepository = FriendsRepository(friendsService: friendsService);
+                      
+                      return BlocProvider(
+                        create: (context) => FriendsCubit(
+                          friendsRepository: friendsRepository,
+                        )..loadFriends(),
+                        child: const FriendsListScreen(),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -102,24 +143,19 @@ final goRouter = GoRouter(
                   name: 'friend_requests',
                   pageBuilder: (context, state) => MaterialPage(
                     child: PageWrapper(
-
-                      child: MultiRepositoryProvider(
-                        providers: [
-                          RepositoryProvider(
-                            create: (context) => FriendsService(
-                                apiProvider: context.read<ApiProvider>()),
-                          ),
-                          RepositoryProvider(
-                            create: (context) => FriendsRepository(
-                                friendsService: context.read<FriendsService>()),
-                          ),
-                        ],
-                        child: BlocProvider(
-                          create: (context) => FriendsCubit(
-                              friendsRepository: context.read<FriendsRepository>())
-                            ..loadFriends(),
-                          child: const FriendRequestsScreen(),
-                        ),
+                      child: Builder(
+                        builder: (context) {
+                          final apiProvider = context.read<ApiProvider>();
+                          final friendsService = FriendsService(apiProvider: apiProvider);
+                          final friendsRepository = FriendsRepository(friendsService: friendsService);
+                          
+                          return BlocProvider(
+                            create: (context) => FriendsCubit(
+                              friendsRepository: friendsRepository,
+                            )..loadFriends(),
+                            child: const FriendRequestsScreen(),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -318,6 +354,22 @@ final goRouter = GoRouter(
             ),
           ],
         ),
+        // Tab Profile
+        StatefulShellBranch(
+          navigatorKey: GlobalKey<NavigatorState>(),
+          routes: [
+            GoRoute(
+              path: '/profile',
+              name: 'profile',
+              pageBuilder: (context, state) => const MaterialPage(
+                child: PageWrapper(
+                  canPop: false,
+                  child: ProfilePage(),
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     ),
   ],
@@ -337,6 +389,8 @@ class AppRouter {
   static void goToGroups(BuildContext context) => context.goNamed('groups');
   
   static void goToFriendRequests(BuildContext context) => context.goNamed('friend_requests');
+  
+  static void goToProfile(BuildContext context) => context.goNamed('profile');
   
   static void goToChat(
       BuildContext context, Friend friend, String currentUserId) {

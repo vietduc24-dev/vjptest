@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../common/bloc_status.dart';
 import '../../../../common/widgets/loading_indicator.dart';
 import '../../../../common/widgets/toast.dart';
 import '../../cubit/friends/firends_cubit.dart';
@@ -61,36 +62,30 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
           Expanded(
             child: BlocConsumer<FriendsCubit, FriendsState>(
               listener: (context, state) {
-                if (state is FriendRequestSent) {
+                if (state.isSuccess && state.successMessage != null) {
                   Toast.show(
                     context,
-                    state.message,
+                    state.successMessage!,
                     type: ToastType.success,
                   );
-                } else if (state is FriendRequestResponded) {
+                } else if (state.hasError && state.errorMessage != null) {
                   Toast.show(
                     context,
-                    state.message,
-                    type: ToastType.success,
-                  );
-                } else if (state is FriendsError) {
-                  Toast.show(
-                    context,
-                    state.message,
+                    state.errorMessage!,
                     type: ToastType.error,
                   );
                 }
               },
               builder: (context, state) {
-                if (state is FriendsLoading) {
+                if (state.status == BlocStatus.loading && !state.isLoadingMore) {
                   return const Center(child: LoadingIndicator());
                 }
                 
-                if (state is FriendsError) {
-                  return Center(child: Text(state.message));
+                if (state.hasError) {
+                  return Center(child: Text(state.errorMessage!));
                 }
 
-                if (state is FriendsLoaded && state.searchResults.isNotEmpty) {
+                if (state.searchResults.isNotEmpty) {
                   return ListView.builder(
                     itemCount: state.searchResults.length,
                     itemBuilder: (context, index) {

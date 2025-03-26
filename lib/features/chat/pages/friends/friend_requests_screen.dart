@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../common/bloc_status.dart';
 import '../../cubit/friends/firends_cubit.dart';
 import '../../cubit/friends/firends_state.dart';
 import '../../widgets/friend_request_item.dart';
@@ -29,7 +30,7 @@ class FriendRequestsScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, FriendsState state) {
-    if (state is! FriendsLoaded) {
+    if (state.status == BlocStatus.loading && !state.isLoadingMore) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -37,7 +38,7 @@ class FriendRequestsScreen extends StatelessWidget {
     
     if (requests.isEmpty) {
       return const Center(
-        child: Text('No friend requests'),
+        child: Text('Không có lời mời kết bạn nào'),
       );
     }
 

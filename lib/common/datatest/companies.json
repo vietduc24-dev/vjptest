@@ -1,0 +1,331 @@
+{
+  "companies": [
+    {
+      "name": "VIET JAPAN PARTNER CO., LTD",
+      "year_founded": 2018,
+      "employees": 25,
+      "business_capital": "2.000.000.000 VND",
+      "address": "Room 22, House 8, Quang Trung City Software City, District 12, HCMC, Viet Nam",
+      "industry": "Consulting and business exchange promotion",
+      "introduction": {
+        "brief": "VIET JAPAN PARTNER was established in October 2018 and serves as the representative company of the VIET JAPAN PARTNER Group (VJP Group), mainly operating in three fields: human resource development, information technology, and supporting business exchange between Vietnam and Japan.",
+        "details": [
+          "Currently, VJP Group is headquartered in Ho Chi Minh City, with representative offices in Hanoi, Da Nang, and An Giang Province, employing a team of 25 staff members.",
+          "VJP Group's clients include Japanese companies, Japanese companies in Vietnam, or Vietnamese companies expanding into the Japanese market.",
+          "VJP Group aims to build an ecosystem service to support the business development activities of Vietnamese and Japanese companies.",
+          "VJP Group provides optimal and effective support for companies expanding their business in the partner country, based on the One Stop Service model, combining three key elements:",
+          [
+            "Expertise and experience of Japanese and Vietnamese specialists",
+            "A multidisciplinary partner network system",
+            "IT capabilities"
+          ],
+          "VJP Group was founded by Mr.Thang Vo, who has over 10 years of work and study experience in Japan and holds a master's degree in IT from the Graduate School of Industrial Technology in Japan.",
+          "Additionally, VJP Group's team is supported by experts from Japan and Vietnam, along with passionate young staff.",
+          "VIET JAPAN PARTNER plays a central role in building this service ecosystem, with a mission to develop and nurture digital human resources that meet societal standards."
+        ],
+        "closing_message": "If you are looking for a partner to support business between Vietnam and Japan, please contact us. We look forward to working with you!"
+      },
+      "description": "VIET JAPAN PARTNER was established in October 2018 and serves as the representative company of the VIET JAPAN PARTNER Group (VJP Group), mainly operating in three fields: human resource development, information technology, and supporting business exchange between Vietnam and Japan. Currently, VJP Group is headquartered in Ho Chi Minh City, with representative offices in Hanoi, Da Nang, and An Giang Province, employing a team of 25 staff members. VJP Group's clients include Japanese companies, Japanese companies in Vietnam, or Vietnamese companies expanding into the Japanese market.",
+      "vision": "To become the top company in Vietnam and Southeast Asia in training and supplying digital human resources according to Japanese standards, with the goal of training 10,000 personnel.",
+      "mission": "To contribute to the development of the digital economy by nurturing students through practical training based on Japanese standards and providing valuable support services to companies.",
+      "core_values": [
+        "Proactivity - Commitment - Professionalism",
+        "Integrity - Responsibility - Positivity",
+        "Learning - Efficiency - Happiness"
+      ],
+      "services": [
+        {
+          "name": "HUMAN RESOURCE DEVELOPMENT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/hr.png"
+        },
+        {
+          "name": "RECRUITMENT SUPPORT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/recruitment.png"
+        },
+        {
+          "name": "CONSULTING ON DOING BUSINESS IN VIETNAM",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/consulting.png"
+        },
+        {
+          "name": "WEBSITE DEVELOPMENT AND ENHANCEMENT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/web.png"
+        },
+        {
+          "name": "SYSTEM DEVELOPMENT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/system.png",
+          "sub_text": "(Laboratory/ Contract/ On-site)"
+        },
+        {
+          "name": "MAINTENANCE AND OPERATIONS SUPPORT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/maintenance.png"
+        },
+        {
+          "name": "DIGITAL TRANSFORMATION (DX) SUPPORT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/dx.png"
+        },
+        {
+          "name": "DIGITAL MARKETING SUPPORT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/marketing.png"
+        },
+        {
+          "name": "BRANDING DESIGN",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/design.png"
+        },
+        {
+          "name": "PRINTING",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/printing.png"
+        },
+        {
+          "name": "CONSULTING AND SUPPORT FOR COMPANY ESTABLISHMENT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/establishment.png"
+        },
+        {
+          "name": "BUSINESS CONNECTION SUPPORT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/connection.png",
+          "sub_text": "VJP-CONNECT.COM"
+        },
+        {
+          "name": "VIET BIZ TOUR - BUSINESS VISIT SUPPORT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/tour.png"
+        },
+        {
+          "name": "COMPANY OPERATIONS SUPPORT",
+          "icon": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/services/operations.png"
+        }
+      ],
+      "needs": [
+        "Japanese companies that want to utilize Vietnamese IT talent",
+        "Japanese companies interested in investing and expanding business in Vietnam",
+        "Companies that want to promote trade between Vietnam and Japan"
+      ],
+      "fields": [
+        "Trade Promotion",
+        "Technology",
+        "Development Technology resource development",
+        "Recruitment",
+        "Design",
+        "Marketing",
+        "Printing"
+      ],
+      "contact": {
+        "email": "vjpconnect@vj-partner.com",
+        "phone": "(+84) 028 7303 8939",
+        "website": "https://vjp-connect.com/en",
+        "address": "P1.3-40, The Prince Residence-Novaland, 17-19-21 Nguyen Van Troi Street, Ward 14, Phu Nhuan District, Ho Chi Minh City, Vietnam"
+      },
+      "certifications": ["JCI", "BNI", "VJCN", "YBA"],
+      "image": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/32eeeef2334c618cee14df81359d6913",
+      "detail_images": [
+        {
+          "url": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/32eeeef2334c618cee14df81359d6913",
+          "caption": "Văn phòng VJP"
+        },
+        {
+          "url": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/32eeeef2334c618cee14df81359d6913",
+          "caption": "Đội ngũ VJP"
+        },
+        {
+          "url": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/32eeeef2334c618cee14df81359d6913",
+          "caption": "Sự kiện kết nối doanh nghiệp"
+        }
+      ],
+      "key_members": [
+        {
+          "name": "THANG VO",
+          "position": "FOUNDER & CEO",
+          "image": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/thangvo.png",
+          "description": "Hơn 10 năm kinh nghiệm làm việc và học tập tại Nhật Bản, Thạc sĩ CNTT tại Trường Đại học Công nghệ Công nghiệp Nhật Bản"
+        },
+        {
+          "name": "TAI DANG",
+          "position": "HR DIRECTOR",
+          "image": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/taidang.png",
+          "description": "Chuyên gia về nhân sự và phát triển nguồn nhân lực"
+        },
+        {
+          "name": "TRINH VO",
+          "position": "CREATIVE DIRECTOR",
+          "image": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/trinhvo.png",
+          "description": "Giám đốc sáng tạo với nhiều năm kinh nghiệm trong lĩnh vực thiết kế và marketing"
+        }
+      ],
+      "customers_and_partners": [
+        {
+          "name": "Global Design Co.,LTD",
+          "logo": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/global-design-logo.png",
+          "type": "customer"
+        },
+        {
+          "name": "SystemGear Vietnam Co., LTD",
+          "logo": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/systemgear-logo.png",
+          "type": "partner"
+        },
+        {
+          "name": "SystemEXE Co.,LTD",
+          "logo": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/systemexe-logo.png",
+          "type": "customer"
+        },
+        {
+          "name": "HITACHI",
+          "logo": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/hitachi-logo.png",
+          "type": "partner"
+        },
+        {
+          "name": "Hutech University",
+          "logo": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/hutech-logo.png",
+          "type": "partner"
+        }
+      ],
+      "profile_url": "https://vjp-connect.com/en/profile/29"
+    },
+    {
+      "name": "CÔNG TY TNHH NHỰA THƯƠNG MẠI LIÊN ĐOÀN",
+      "year_founded": 1990,
+      "employees": 300,
+      "business_capital": "9.000.000.000 VND",
+      "address": "185 Trần Quý, Phường 4, Quận 11, Tp. Hồ Chí Minh, Vietnam",
+      "industry": "Sản xuất và thương mại nhựa",
+      "description": "Công ty chuyên sản xuất và phân phối các sản phẩm giày dép nhựa và giày vải tiện dụng.",
+      "needs": [
+        "Tìm kiếm khách hàng nhà bè, nhà phân phối giày dép từ Nhật Bản",
+        "Quảng bá giới thiệu các sản phẩm giày dép nhựa và giày vải tiện dụng"
+      ],
+      "contact": {
+        "email": "contact@liendoanplastic.com",
+        "phone": "+84-901-234-567"
+      },
+      "image": "https://vjpconnect.s3.ap-southeast-1.amazonaws.com/252/950c4fbfb8407750950fc1bdb40e7bec",
+      "detail_images": [
+        {
+          "url": "https://vjpconnect.s3.ap-southeast-1.amazonaws.com/252/product1.jpg",
+          "caption": "Sản phẩm giày dép nhựa"
+        },
+        {
+          "url": "https://vjpconnect.s3.ap-southeast-1.amazonaws.com/252/factory1.jpg",
+          "caption": "Nhà máy sản xuất"
+        }
+      ],
+      "key_members": [
+        {
+          "name": "Nguyễn Văn A",
+          "position": "Giám đốc điều hành",
+          "image": "https://vjpconnect.s3.ap-southeast-1.amazonaws.com/252/director.jpg",
+          "description": "20 năm kinh nghiệm trong ngành nhựa"
+        }
+      ],
+      "customers_and_partners": [
+        {
+          "name": "Công ty ABC",
+          "logo": "https://vjpconnect.s3.ap-southeast-1.amazonaws.com/252/partner1.jpg",
+          "type": "customer"
+        }
+      ],
+      "profile_url": "https://vjp-connect.com/en/profile/252"
+    },
+    {
+      "name": "CÔNG TY CỔ PHẦN GIA TRỊNH BAKERY",
+      "year_founded": 2006,
+      "employees": 100,
+      "business_capital": "9.000.000.000 VND",
+      "address": "Số 16A Lý Nam Đế, Phường Hàng Mã, Quận Hoàn Kiếm, Hà Nội, Vietnam",
+      "industry": "Thực phẩm và đồ uống",
+      "description": "Công ty chuyên cung cấp các sản phẩm bánh ngọt và giải pháp quà tặng truyền thống Việt Nam.",
+      "needs": [
+        "Tìm các công ty cần giải pháp về in ấn",
+        "Tìm đối tác phân phối quà tặng mang đậm nét truyền thống Việt Nam, chất lượng cao"
+      ],
+      "contact": {
+        "email": "sales@giatrinhbakery.vn",
+        "phone": "+84-912-345-678"
+      },
+      "image": "https://vjpconnect.s3.ap-southeast-1.amazonaws.com/vjp-connect/profile/318/company/20241118103102_tải xuống (7).png",
+      "key_members": [
+        {
+          "name": "Trần Thị B",
+          "position": "Tổng Giám đốc",
+          "image": "https://vjpconnect.s3.ap-southeast-1.amazonaws.com/318/ceo.jpg",
+          "description": "Chuyên gia trong lĩnh vực bánh ngọt với 15 năm kinh nghiệm"
+        }
+      ],
+      "customers_and_partners": [
+        {
+          "name": "Công ty XYZ",
+          "logo": "https://vjpconnect.s3.ap-southeast-1.amazonaws.com/318/partner1.jpg",
+          "type": "partner"
+        }
+      ],
+      "profile_url": "https://vjp-connect.com/en/profile/318"
+    },
+    {
+      "name": "NAKAYAMA CO., LTD",
+      "year_founded": 1948,
+      "employees": 57,
+      "business_capital": "20,000,000 JPY",
+      "address": "627-0012 657-1 Sugitani, Mineyama-cho, Kyotango-shi, Kyoto, Japan",
+      "industry": "Sản xuất và thương mại",
+      "description": "Công ty Nhật Bản chuyên về sản xuất và tìm kiếm đối tác kinh doanh tại Việt Nam.",
+      "needs": [
+        "Tìm đối tác Việt Nam trong các lĩnh vực sản xuất và thương mại"
+      ],
+      "contact": {
+        "email": "info@nakayama.co.jp",
+        "phone": "+81-123-456-789"
+      },
+      "image": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/50d945a1c2196cca66dd7706e599f1af",
+      "key_members": [
+        {
+          "name": "Tanaka Hiroshi",
+          "position": "CEO",
+          "image": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/39/ceo.jpg",
+          "description": "30 năm kinh nghiệm trong lĩnh vực sản xuất và thương mại"
+        }
+      ],
+      "customers_and_partners": [
+        {
+          "name": "Company DEF",
+          "logo": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/39/partner1.jpg",
+          "type": "customer"
+        }
+      ],
+      "profile_url": "https://vjp-connect.com/en/profile/39"
+    },
+    {
+      "name": "FUJINO SHOJI CO., LTD",
+      "year_founded": 2023,
+      "employees": 90,
+      "business_capital": "25,000,000 JPY",
+      "address": "Số 11-3, Phường Gokojo, Thành phố Higashiosaka, Japan",
+      "industry": "Thương mại và dịch vụ",
+      "description": "Công ty mới thành lập tại Nhật Bản, tập trung vào việc mở rộng quan hệ kinh doanh với Việt Nam.",
+      "needs": [
+        "Tìm đối tác Việt Nam để hợp tác kinh doanh và phát triển thị trường"
+      ],
+      "contact": {
+        "email": "contact@fujino-shoji.co.jp",
+        "phone": "+81-987-654-321"
+      },
+      "image": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/7d22b1a6b99de92f97e18484e73ab8bf",
+      "key_members": [
+        {
+          "name": "Fujino Kenji",
+          "position": "Chủ tịch",
+          "image": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/52/chairman.jpg",
+          "description": "Người sáng lập với tầm nhìn mở rộng kinh doanh tại Việt Nam"
+        }
+      ],
+      "customers_and_partners": [
+        {
+          "name": "Company GHI",
+          "logo": "https://vjp-connect-upload.s3.ap-southeast-1.amazonaws.com/52/partner1.jpg",
+          "type": "partner"
+        }
+      ],
+      "profile_url": "https://vjp-connect.com/en/profile/52"
+    }
+  ],
+  "metadata": {
+    "date_accessed": "2025-03-15",
+    "source": "VJP Connect Platform (https://vjp-connect.com/en)",
+    "platform_description": "A platform specializing in supporting business promotion, finding partners, experts, and connecting Vietnamese and Japanese companies in many fields."
+  }
+} 

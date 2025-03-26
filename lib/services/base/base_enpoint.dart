@@ -26,9 +26,7 @@ class FileEndpointType {
 
 class DefaultHeader {
   DefaultHeader._();
-
   static final DefaultHeader instance = DefaultHeader._();
-
   Map<String, String> addDefaultHeader() {
     return {
       "Content-Type": "application/json",
@@ -37,14 +35,17 @@ class DefaultHeader {
 }
 
 class BaseEndpoint {
+  // Trong quá trình development, luôn coi là máy ảo
+  static bool get isAndroidEmulator => true;
+
   static String get baseUrl {
     if (kIsWeb) {
       return dotenv.env['API_URL_WEB'] ?? 'http://localhost:3000/api';
     }
 
     if (Platform.isAndroid) {
-      // Sử dụng 10.0.2.2 cho cả máy ảo và thiết bị thật khi debug qua USB
-      return dotenv.env['API_URL'] ?? 'http://10.0.2.2:3000/api';
+      debugPrint('📱 Running on Android Emulator -> using 10.0.2.2');
+      return dotenv.env['API_URL_ANDROID'] ?? 'http://10.0.2.2:3000/api';
     }
 
     if (Platform.isIOS) {

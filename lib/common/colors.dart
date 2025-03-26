@@ -48,7 +48,7 @@ class UIColors {
   static const Color colorTextField = Color(0xFFC1C1C1);
   static const Color colorBlur = Color(0x00000014);
   static const Color cyan = Color(0xFF4BE3C8);
-  static const Color yellow = Color(0xFFFFB800);
+  static const Color yellow = Color(0xFFFFD54F);
   static const Color line = Color(0xFFF0F8FF);
   static const Color succeed = Color(0xFFC6EDE1);
   static const Color failed = Color(0xFFEDC6C6);
